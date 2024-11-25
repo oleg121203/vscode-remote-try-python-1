@@ -7,15 +7,8 @@ import threading
 import os
 import warnings
 import signal
-
-# Добавьте эти строки до импорта PyQt6
-os.environ["QT_EnableHighDpiScaling"] = "1"
-os.environ["QT_UseHighDpiPixmaps"] = "1"
-
 from PyQt6.QtWidgets import QApplication, QMessageBox
 from PyQt6.QtCore import QTimer
-from PyQt6.QtGui import QGuiApplication, QFont
-from PyQt6.QtCore import Qt
 from qasync import QEventLoop
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TF logging
@@ -42,23 +35,11 @@ async def cleanup(telegram_module, bot_manager, db_module):
 
 def main():
     try:
-        # Удаление настройки колірного простору
-        # QApplication.setColorSpec(QApplication.ColorSpec.Color)
-    
-        # Удаление некорректных вызовов setAttribute
-        # QApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
-        # QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
-    
         # Initialize application
         app = QApplication(sys.argv)
-        
-        # Установка стандартного шрифта
-        default_font = QFont("Segoe UI", 10)
-        app.setFont(default_font)
-        
         loop = QEventLoop(app)
         asyncio.set_event_loop(loop)
-    
+
         # Fix logging configuration - use 'levelname' instead of 'levelнем'
         logging.basicConfig(
             level=logging.INFO,
@@ -154,18 +135,6 @@ def main():
             tg_connected=False,
             config_manager=config_manager
         )
-        # Установка прозрачности окна
-        main_window.setWindowOpacity(1.0)  # Полностью непрозрачное окно
-        main_window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-
-        # Установка флагов окна для полной прозрачности и без рамок
-        main_window.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint | 
-            Qt.WindowType.WindowSystemMenuHint | 
-            Qt.WindowType.WindowMinimizeButtonHint | 
-            Qt.WindowType.WindowMaximizeButtonHint
-        )
-
         main_window.show()
 
         # Запуск циклу подій
@@ -184,5 +153,4 @@ def main():
         sys.exit(1)
 
 if __name__ == "__main__":
-    print(dir(Qt))
     main()
