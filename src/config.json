@@ -1,6 +1,6 @@
 {
     "database": {
-        "host": "127.0.0.1",
+        "host": "172.17.0.1",
         "user": "test_user",
         "password": "test_password",
         "database": "test_db"
@@ -22,7 +22,7 @@
         "session_name": "bot_session",
         "created_at": "2024-11-09T04:12:12.195318",
         "status": "active",
-        "last_active": "2024-11-25T10:17:20.559862",
+        "last_active": "2024-11-25T10:57:59.231517",
         "last_error": null
     },
     "general": {

@@ -57,3 +57,4 @@ tzdata==2024.2
 urllib3==2.2.3
 XlsxWriter==3.2.0
 PyAudio
+requests==2.28.2
