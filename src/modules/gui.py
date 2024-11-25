@@ -166,11 +166,28 @@ class TopBar(QWidget):
 class AuthDialog(QDialog):
     def __init__(self, title, label, parent=None):
         super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowTitle(title)
         self.setModal(True)
         self.value = None
 
-        layout = QVBoxLayout()
+        # Создание центрального виджета с прозрачным фоном
+        central_widget = QWidget()
+        central_widget.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(central_widget)
+        layout = QVBoxLayout(central_widget)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
+
+        # Установка прозрачного стиля
+        central_widget.setStyleSheet("""
+            QDialog {
+                background-color: rgba(255, 255, 255, 230); /* Почти непрозрачный белый фон */
+                border-radius: 10px;
+            }
+        """)
 
         self.label_widget = QLabel(label)
         self.input = QLineEdit()
@@ -233,67 +250,60 @@ class AuthDialog(QDialog):
 class ConfigGUI(QDialog):
     def __init__(self, config_manager, parent=None):
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.config_manager = config_manager
         self.setWindowTitle(self.translate('settings'))
         self.setModal(True)
 
-        # Set fixed size for more compact window
-        self.setFixedSize(500, 400)  # Reduced from 800x600
+        # Установка фиксированного размера для компактного окна
+        self.setFixedSize(500, 400)  # Можно изменить по необходимости
 
-        # Get screen geometry for centering
-        screen = QApplication.primaryScreen().geometry()
-        self.setGeometry(
-            (screen.width() - 500) // 2,  # Center horizontally
-            (screen.height() - 400) // 2,  # Center vertically
-            500,  # Width
-            400   # Height
-        )
+        # Создание центрального виджета с прозрачным фоном
+        central_widget = QWidget()
+        central_widget.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(central_widget)
+        central_layout = QVBoxLayout(central_widget)
+        central_layout.setContentsMargins(10, 10, 10, 10)
+        central_layout.setSpacing(10)
 
-        # Initialize UI elements as None
-        self.api_id_input = None
-        self.api_hash_input = None
-        self.phone_number_input = None
-        self.db_host_input = None
-        self.db_user_input = None
-        self.db_password_input = None
-        self.db_name_input = None
-        self.transparency_slider = None
-        self.language_selector = None
-        self.theme_selector = None
-        self.bot_token_input = None
-        self.bot_api_id_input = None
-        self.bot_api_hash_input = None
-        self.limits_slider = None
-        self.limits_value_label = None
-        self.bot_status_label = None
-
-        # Variables for moving
-        self._is_moving = False
-        self._start_pos = None
-
-        # Create main layout
-        self.main_layout = QVBoxLayout(self)
+        # Создание основного макета
+        self.main_layout = QVBoxLayout(central_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # Set size and position
-        if parent:
-            parent_geometry = parent.geometry()
-            self.setGeometry(
-                parent_geometry.x() + parent_geometry.width() // 2 - 400,
-                parent_geometry.y() + parent_geometry.height() // 2 - 300,
-                800,
-                600
-            )
+        # Добавление верхней панели (если есть)
+        # self.top_bar = TopBar(self)
+        # self.main_layout.addWidget(self.top_bar)
 
-        # Setup UI components
-        self.setup_ui()
-        
-        # Apply theme and load settings
+        # Установка прозрачного стиля для центрального виджета
+        central_widget.setStyleSheet("""
+            QWidget {
+                background-color: rgba(255, 255, 255, 200); /* Полупрозрачный белый фон */
+                border-radius: 10px;
+            }
+        """)
+
+        # ...existing UI setup...
+
+        # Применение т��мы и загрузка настроек
         self.apply_theme()
         self.load_existing_settings()
+
+    def apply_theme(self):
+        """Apply theme to dialog window"""
+        theme = themes[current_theme]
+        self.setStyleSheet(get_complete_dialog_style(theme))
+        # Установка прозрачного фона для всех дочерних виджетов
+        for widget in self.findChildren(QWidget):
+            widget.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+            widget.setStyleSheet("""
+                QWidget {
+                    background-color: transparent;
+                    color: inherit;
+                }
+            """)
 
     def setup_ui(self):
         """Initialize all UI components with compact layout"""
@@ -1163,6 +1173,38 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(0, self.start_async_tasks)
 
     def init_ui(self):
+        # Установка флагов окна для полной прозрачности и без рамок
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint | 
+            Qt.WindowType.WindowSystemMenuHint | 
+            Qt.WindowType.WindowMinimizeButtonHint | 
+            Qt.WindowType.WindowMaximizeButtonHint
+        )
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        
+        # Создание центрального виджета с прозрачным фоном
+        central_widget = QWidget()
+        central_widget.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setCentralWidget(central_widget)
+        
+        # Установка прозрачного стиля для центрального виджета
+        central_widget.setStyleSheet("""
+            QWidget {
+                background-color: rgba(0, 0, 0, 150); /* Полупрозрачный черный фон */
+                border-radius: 10px;
+            }
+        """)
+
+        # Создание основного макета
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(10)
+
+        # Добавление верхней панели
+        self.top_bar = TopBar(self)
+        main_layout.addWidget(self.top_bar)
+
+        # Добавление остальных элементов интерфейса
         # Initialize fetch_participants_action first
         self.fetch_participants_action = QAction(self.translate('fetch_participants'), self)
         self.fetch_participants_action.triggered.connect(self.on_fetch_participants)
