@@ -11,7 +11,7 @@
         "phone_number": "18888412187"
     },
     "interface": {
-        "transparency": 61,
+        "transparency": 52,
         "language": "en",
         "theme": "hacker"
     },
@@ -20,9 +20,9 @@
         "api_id": 26292865,
         "api_hash": "c3c399387f2768f75a0e1515e420dce4",
         "session_name": "bot_session",
-        "created_at": "2024-11-25T16:08:53.923961",
+        "created_at": "2024-11-25T16:35:34.678684",
         "status": "active",
-        "last_active": "2024-11-25T16:04:29.733364",
+        "last_active": "2024-11-25T16:33:19.793621",
         "last_error": null
     },
     "general": {
