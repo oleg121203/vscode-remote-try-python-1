@@ -12,23 +12,23 @@
         apt-get install -y --no-install-recommends \
             libgl1-mesa-glx \
             libegl1-mesa \
-            libxkbcommon-x11-0 \
             libdbus-1-3 \
-            libxcb-xinerama0 \
-            libxcb-icccm4 \
-            libxcb-image0 \
-            libxcb-keysyms1 \
-            libxcb-randr0 \
-            libxcb-render-util0 \
-            libxcb-xfixes0 \
-            libxcb-cursor0 \
-            xcb \
-            qt6-wayland && \
+            tightvncserver \
+            xfce4 \
+            xfce4-terminal \
+            dbus-x11 \
+            python3-pyqt6 \
+            fonts-liberation && \
         apt-get clean && \
         rm -rf /var/lib/apt/lists/*' && \
+        mkdir -p ~/.vnc && \
+        echo \"123456\" | vncpasswd -f > ~/.vnc/passwd && \
+        chmod 600 ~/.vnc/passwd && \
+        echo \"#!/bin/bash\nxrdb $HOME/.Xresources\nstartxfce4 &\" > ~/.vnc/xstartup && \
+        chmod +x ~/.vnc/xstartup && \
         python3 -m pip install --upgrade pip && \
         python3 -m pip install --no-cache-dir -r requirements.txt && \
-        python3 -m pip install --no-cache-dir black && \
+        python3 -m pip install --no-cache-dir black pyqt6-tools==6.4.2.3.3 && \
         git config --global user.email \"oleg12203@gmail.com\" && \
         git config --global user.name \"Oleg Kizyma\"",
     "customizations": {
@@ -55,26 +55,39 @@
                 "python.analysis.typeCheckingMode": "basic",
                 "python.analysis.autoSearchPaths": true,
                 "python.analysis.useLibraryCodeForTypes": true,
-                // Налаштування інтеграції з X11 для відображення GUI додатків
-                "remote.X11.display": ":0",
                 // Add pip configuration
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
                 "python.pip.downloadCache": "${containerWorkspaceFolder}/.pip-cache",
                 "black-formatter.args": [
                     "--line-length",
                     "88"
+                ],
+                // Добавляем настройки для PyQt
+                "python.linting.enabled": true,
+                "python.linting.pylintEnabled": true,
+                "python.linting.pylintArgs": [
+                    "--disable=C0111"
                 ]
             },
             "extensions": [
                 "ms-python.python",
                 "ms-python.vscode-pylance",
                 "GitHub.copilot",
-                "GitHub.copilot-chat"
+                "GitHub.copilot-chat",
+                "ms-python.pylint",
+                "ms-toolsai.jupyter",
+                "mhutchie.git-graph",
+                "eamodio.gitlens"
             ]
         }
     },
     "remoteUser": "vscode",
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-    ]
+    ],
+    "forwardPorts": [
+        5901
+    ],
+    // Добавляем скрипт запуска VNC при старте контейнера
+    "initializeCommand": "echo 'vncserver :1 -geometry 1920x1080 -depth 24' >> ~/.bashrc"
 }
