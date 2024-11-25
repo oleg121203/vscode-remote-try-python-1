@@ -1,0 +1,78 @@
+{
+    "database": {
+        "host": "127.0.0.1",
+        "user": "test_user",
+        "password": "test_password",
+        "database": "test_db"
+    },
+    "telegram": {
+        "api_id": 26292865,
+        "api_hash": "c3c399387f2768f75a0e1515e420dce4",
+        "phone_number": "18888412187"
+    },
+    "interface": {
+        "transparency": 71,
+        "language": "en",
+        "theme": "dark"
+    },
+    "bot": {
+        "token": "8096147830:AAGAzABwg7hxuj-Yg1W5ndnqLl5Z3U--pLw",
+        "api_id": 26292865,
+        "api_hash": "c3c399387f2768f75a0e1515e420dce4",
+        "session_name": "bot_session",
+        "created_at": "2024-11-09T04:12:12.195318",
+        "status": "error",
+        "last_active": null,
+        "last_error": "Connection failed"
+    },
+    "general": {
+        "description": "Загальна конфігурація для роботи акаунтів і ботів",
+        "max_accounts": 30,
+        "max_groups_per_account": 50,
+        "max_messages_per_day": 200,
+        "max_members_per_group": 1000,
+        "max_members_scan_per_account": 30,
+        "scan_delay_min": 2,
+        "scan_delay_max": 5,
+        "bot_scan_delay_min": 5,
+        "bot_scan_delay_max": 10
+    },
+    "account": {
+        "description": "Налаштування для акаунтів",
+        "max_groups_per_scan": 10,
+        "max_members_per_scan": 30,
+        "scan_interval": 10,
+        "api_access": {
+            "token": "",
+            "api_id": "",
+            "api_hash": ""
+        },
+        "workload": {
+            "max_daily_scans": 100,
+            "max_scan_retries": 3
+        },
+        "backup_scan": {
+            "enabled": true,
+            "description": "Акаунт збирає дані, якщо бот не отримав доступ"
+        }
+    },
+    "data_sync": {
+        "description": "Налаштування для синхронізації даних",
+        "sync_interval": 10,
+        "sync_retry_limit": 3
+    },
+    "monitoring": {
+        "description": "Налаштування для моніторингу активності",
+        "max_members_per_scan": 50,
+        "bot_retry_limit": 5
+    },
+    "limits": {
+        "description": "Safe limits for minimal activity",
+        "max_accounts": 2,
+        "max_groups_per_account": 10,
+        "max_messages_per_day": 50,
+        "delay_min": 3,
+        "delay_max": 7,
+        "preset": "minimum"
+    }
+}
