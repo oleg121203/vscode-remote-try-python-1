@@ -74,11 +74,12 @@ class DatabaseModule:
         'participants': PARTICIPANTS_TABLE_SCHEMA
     }
 
-    def __init__(self, host: str, user: str, password: str, database: str):
+    def __init__(self, host: str, user: str, password: str, database: str, port: int = 3306):
         self.host = host
         self.user = user
         self.password = password
         self.database = database
+        self.port = port  # Add port parameter
         self.pool: Optional[aiomysql.Pool] = None
         self._is_closing = False
 
@@ -90,7 +91,7 @@ class DatabaseModule:
             
             self.pool = await aiomysql.create_pool(
                 host=self.host,
-                port=3306,  # Explicitly set MySQL port
+                port=self.port,  # Use the port parameter
                 user=self.user,
                 password=self.password,
                 db=self.database,
@@ -309,7 +310,7 @@ class DatabaseModule:
             return None
 
     async def get_all_users(self) -> List[Dict[str, Any]]:
-        """О��римує список всіх користувачів."""
+        """Отримує список всіх користувачів."""
         try:
             async with self.pool.acquire() as conn:
                 async with conn.cursor(aiomysql.DictCursor) as cur:

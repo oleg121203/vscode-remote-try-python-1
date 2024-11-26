@@ -296,6 +296,7 @@ class ConfigGUI(QDialog):
         self.api_hash_input = None
         self.phone_number_input = None
         self.db_host_input = None
+        self.db_port_input = None  # Add port input field
         self.db_user_input = None
         self.db_password_input = None
         self.db_name_input = None
@@ -377,6 +378,7 @@ class ConfigGUI(QDialog):
         self.api_hash_input = QLineEdit()
         self.phone_number_input = QLineEdit()
         self.db_host_input = QLineEdit()
+        self.db_port_input = QLineEdit()  # Add port input
         self.db_user_input = QLineEdit()
         self.db_password_input = QLineEdit()
         self.db_name_input = QLineEdit()
@@ -384,6 +386,7 @@ class ConfigGUI(QDialog):
         # Make input fields smaller
         for input_field in [self.api_id_input, self.api_hash_input, 
                           self.phone_number_input, self.db_host_input,
+                          self.db_port_input,  # Add to small fields
                           self.db_user_input, self.db_password_input, 
                           self.db_name_input]:
             input_field.setFixedHeight(25)  # Smaller height
@@ -393,6 +396,7 @@ class ConfigGUI(QDialog):
         general_layout.addRow(QLabel("API Hash:"), self.api_hash_input)
         general_layout.addRow(QLabel(self.translate('phone_number')), self.phone_number_input)
         general_layout.addRow(QLabel("DB Host:"), self.db_host_input)
+        general_layout.addRow(QLabel("DB Port:"), self.db_port_input)  # Add port field
         general_layout.addRow(QLabel("DB User:"), self.db_user_input)
         general_layout.addRow(QLabel("DB Password:"), self.db_password_input)
         general_layout.addRow(QLabel("DB Name:"), self.db_name_input)
@@ -495,10 +499,12 @@ class ConfigGUI(QDialog):
         general_layout.addRow(QLabel("API Hash:"), self.api_hash_input)
         general_layout.addRow(QLabel(self.translate('phone_number')), self.phone_number_input)
         self.db_host_input = QLineEdit()
+        self.db_port_input = QLineEdit()  # Add port input
         self.db_user_input = QLineEdit()
         self.db_password_input = QLineEdit()
         self.db_name_input = QLineEdit()
         general_layout.addRow(QLabel("DB Host:"), self.db_host_input)
+        general_layout.addRow(QLabel("DB Port:"), self.db_port_input)  # Add port field
         general_layout.addRow(QLabel("DB User:"), self.db_user_input)
         general_layout.addRow(QLabel("DB Password:"), self.db_password_input)
         general_layout.addRow(QLabel("DB Name:"), self.db_name_input)
@@ -636,6 +642,7 @@ class ConfigGUI(QDialog):
         self.phone_number_input.setText(telegram_config.get('phone_number', ''))
         database_config = self.config_manager.get_database_config()
         self.db_host_input.setText(database_config.get('host', ''))
+        self.db_port_input.setText(str(database_config.get('port', '3306')))  # Add port loading
         self.db_user_input.setText(database_config.get('user', ''))
         self.db_password_input.setText(database_config.get('password', ''))
         self.db_name_input.setText(database_config.get('database', ''))
@@ -733,6 +740,7 @@ class ConfigGUI(QDialog):
         api_hash = self.api_hash_input.text().strip()
         phone_number = self.phone_number_input.text().strip()
         db_host = self.db_host_input.text().strip()
+        db_port = self.db_port_input.text().strip() or '3306'  # Add port saving
         db_user = self.db_user_input.text().strip()
         db_password = self.db_password_input.text().strip()
         db_name = self.db_name_input.text().strip()
@@ -743,7 +751,7 @@ class ConfigGUI(QDialog):
             
         # Save all configurations
         self.config_manager.set_telegram_config(api_id=int(api_id), api_hash=api_hash, phone_number=phone_number)
-        self.config_manager.set_database_config(host=db_host, user=db_user, password=db_password, database=db_name)
+        self.config_manager.set_database_config(host=db_host, port=int(db_port), user=db_user, password=db_password, database=db_name)
         
         # Save interface settings without showing message
         self.save_interface_settings()  
@@ -1210,7 +1218,7 @@ class MainWindow(QMainWindow):
         self.file_processor = FileProcessor()
         self.setAcceptDrops(True)  # Enable file drag and drop
 
-        # Додайте лічильник акаунтів
+        # До��айте лічильник акаунті��
         self.accounts_count = 0
 
         # Add bot connection state

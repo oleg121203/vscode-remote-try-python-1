@@ -217,7 +217,7 @@ class ConfigManager:
             logging.error(f"Failed to save initial configuration: {e}")
 
     def save_config(self):
-        """Зберігає поточну конфігур��цію до файлу атомарно."""
+        """Зберігає поточну конфігурацію до файлу атомарно."""
         # Ensure directory exists
         os.makedirs(os.path.dirname(os.path.abspath(self.config_file)), exist_ok=True)
         
@@ -302,20 +302,23 @@ class ConfigManager:
         return self.config.get('limits', self.get_default_config()['limits'])
 
     def set_telegram_config(self, api_id: int, api_hash: str, phone_number: str):
-        """Встановлює конфігурацію для Telegram."""
+        """Встановлює конфігурацію дл�� Telegram."""
         self.config['telegram'] = {
             'api_id': api_id,
             'api_hash': api_hash,
             'phone_number': phone_number
         }
 
-    def set_database_config(self, host: str, user: str, password: str, database: str):
+    def set_database_config(self, host: str, user: str, password: str, database: str, port: int = 3306):
         """Встановлює конфігурацію для бази даних."""
         self.config['database'] = {
             'host': host,
+            'port': port,  # Add port parameter
             'user': user,
             'password': password,
-            'database': database
+            'database': database,
+            'use_unicode': True,
+            'charset': 'utf8mb4'
         }
 
     def set_interface_config(self, transparency: int, language: str, theme: str):
@@ -382,7 +385,7 @@ class ConfigManager:
                 },
                 'backup_scan': {
                     'enabled': True,
-                    'description': 'Акаунт збирає дані, якщо бот не отримав доступ'
+                    'description': 'Акау��т збирає дані, якщо бот не отримав доступ'
                 }
             },
             'bot': {
