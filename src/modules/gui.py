@@ -1206,12 +1206,12 @@ class MainWindow(QMainWindow):
         # Schedule async initialization
         QTimer.singleShot(0, self.start_async_tasks)
 
+        self.check_timer = QTimer()
+        self.check_timer.timeout.connect(self.check_connections)
+        self.check_timer.start(5000)  # Проверяем соединения каждые 5 секунд
+
     def init_ui(self):
         # Initialize fetch_participants_action first
-        self.fetch_participants_action = QAction(self.translate('fetch_participants'), self)
-        self.fetch_participants_action.triggered.connect(self.on_fetch_participants)
-        
-        # Initialize group context menu
         self.group_context_menu = QMenu(self)
         self.group_context_menu.addAction(self.fetch_participants_action)
 
@@ -1488,7 +1488,7 @@ class MainWindow(QMainWindow):
         return translations[current_language].get(key, key)
 
     def apply_theme(self):
-        """Застос��вує поточну тему до головного вікна."""
+        """Застосовує поточну тему до головного вікна."""
         theme = themes[current_theme]
         background_color = theme['background_color']
         text_color = theme['text_color']
@@ -1583,7 +1583,7 @@ class MainWindow(QMainWindow):
 
         self.fetch_participants_action.setText(self.translate('fetch_participants'))
 
-        # Оновлення тексту лічильника акаунтів
+        # Он��влення тексту лічильника акаунтів
         self.accounts_status_label.setText(f"{self.translate('accounts')}: {self.accounts_count}")
 
     def load_interface_settings(self):
@@ -1756,7 +1756,7 @@ class MainWindow(QMainWindow):
 
     @asyncSlot()
     async def search_accounts_in_groups_slot(self):
-        """Розпочинає пошук акаунтів у групах."""
+        """Розпочинає пошук акаунтів у г��упах."""
         self.search_accounts_button.setVisible(False)
         self.progress_bar_accounts.setVisible(True)
         self.pause_button_accounts.setVisible(True)
@@ -2000,14 +2000,23 @@ class MainWindow(QMainWindow):
                         # Only check bot if account is connected
                         if self.tg_connected and self.telegram_module.bot_manager:
                             bot_status = await self.telegram_module.bot_manager.check_status()
+                            was_connected = self.bot_connected
                             self.bot_connected = bot_status['ok']
-                            self.bot_light.set_state("green" if self.bot_connected else "red")
                             
-                            if self.config_manager:
-                                self.config_manager.update_bot_status(
-                                    status='active' if self.bot_connected else 'disconnected',
-                                    error=bot_status.get('details') if not bot_status['ok'] else None
-                                )
+                            if self.bot_connected:
+                                if not was_connected:
+                                    logging.info("Bot connection established")
+                                self.bot_light.set_state("green")
+                            else:
+                                if was_connected:
+                                    logging.warning(f"Bot disconnected: {bot_status.get('details')}")
+                                self.bot_light.set_state("red")
+                                
+                            # Проверяе�� есть ли рассинхронизация между статусами
+                            config_status = self.config_manager.get_bot_status()
+                            if config_status['status'] == 'active' and not self.bot_connected:
+                                logging.warning("Status mismatch: config shows active but bot is disconnected")
+                                self.config_manager.update_bot_status('error', 'Connection lost')
                         else:
                             self.bot_connected = False
                             self.bot_light.set_state("red")

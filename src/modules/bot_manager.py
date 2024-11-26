@@ -1,10 +1,13 @@
-from typing import Optional, Dict, Any, List, Set
-from telethon import TelegramClient, events, errors
-from telethon.tl.types import User, Chat, Channel
-from telethon.errors import ChatAdminRequiredError, UserNotParticipantError
-import logging
 import asyncio
+import logging
 import os
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Set
+
+from telethon import TelegramClient, errors, events
+from telethon.errors import ChatAdminRequiredError, UserNotParticipantError
+from telethon.tl.types import Channel, Chat, User
+
 
 class BotManager:
     def __init__(self, bot_token: str, api_id: int, api_hash: str,
@@ -13,6 +16,23 @@ class BotManager:
         # Use provided sessions directory or default to 'sessions' in project root
         self.sessions_dir = sessions_dir or os.path.join(os.path.dirname(os.path.dirname(__file__)), 'sessions')
         os.makedirs(self.sessions_dir, exist_ok=True)
+
+        # Setup logging
+        log_dir = os.path.join(self.sessions_dir, 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        
+        log_file = os.path.join(log_dir, f'bot_{datetime.now().strftime("%Y%m%d")}.log')
+        
+        # Configure file handler with detailed formatting
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s'
+        ))
+        
+        # Get logger for bot manager
+        self.logger = logging.getLogger('bot_manager')
+        self.logger.addHandler(file_handler)
+        self.logger.setLevel(logging.DEBUG)
 
         # Create unique session name using part of bot token
         if bot_token:
@@ -42,6 +62,7 @@ class BotManager:
         self.config_manager = None  # Will be set from outside
 
         logging.info(f"Bot session will be saved as: {self.session_path}")
+        self.logger.info(f"Bot session initialized. Session path: {self.session_path}")
 
     def set_config_manager(self, config_manager):
         """Set config manager for status updates."""
@@ -51,7 +72,7 @@ class BotManager:
         """Check bot status and connectivity."""
         try:
             if not self._connected or not self.bot:
-                logging.warning("Bot is not connected")
+                self.logger.warning("Bot is not connected")
                 return {
                     'ok': False,
                     'status': 'disconnected',
@@ -61,12 +82,15 @@ class BotManager:
             try:
                 # Проверяем реальное подключение
                 if not self.bot.is_connected():
+                    self.logger.info("Reconnecting bot...")
                     await self.bot.connect()
                 
+                # Проверяем что это действительно бот
                 me = await self.bot.get_me()
                 if not me or not me.bot:
                     raise Exception("Invalid bot account")
 
+                self.logger.info(f"Bot status check successful: @{me.username}")
                 status = {
                     'ok': True,
                     'status': 'active',
@@ -79,28 +103,28 @@ class BotManager:
                 # Обновляем статус в конфиге только при успешной проверке
                 if self.config_manager:
                     self.config_manager.update_bot_status('active')
+                    self.logger.debug("Bot status updated to active")
 
                 return status
 
             except Exception as e:
-                logging.error(f"Bot connection check failed: {e}")
+                self.logger.error(f"Bot connection check failed: {e}")
                 if self.config_manager:
                     self.config_manager.update_bot_status('error', str(e))
                 return {
                     'ok': False,
-                    'status': 'error',
+                    'status': 'error', 
                     'details': str(e)
                 }
 
         except Exception as e:
-            error_msg = f"Bot status check failed: {str(e)}"
-            logging.error(error_msg)
+            self.logger.error(f"Bot status check failed: {e}")
             if self.config_manager:
-                self.config_manager.update_bot_status('error', error_msg)
+                self.config_manager.update_bot_status('error', str(e))
             return {
                 'ok': False,
                 'status': 'error',
-                'details': error_msg
+                'details': str(e)
             }
 
     async def start(self):

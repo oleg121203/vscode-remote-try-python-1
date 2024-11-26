@@ -1,25 +1,29 @@
 # main.py
 
-import sys
 import asyncio
 import logging
-import threading
 import os
-import warnings
 import signal
-from PyQt6.QtWidgets import QApplication, QMessageBox
+import sys
+import threading
+import warnings
+from datetime import datetime
+
 from PyQt6.QtCore import QTimer
+from PyQt6.QtWidgets import QApplication, QMessageBox
 from qasync import QEventLoop
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TF logging
 warnings.filterwarnings("ignore", "TSMSendMessageToUIServer.*")
 
+from modules.bot_manager import BotManager
+
 # Module imports
 from modules.config_manager import ConfigManager
+from modules.gui import MainWindow
 from modules.mdb1_database import DatabaseModule
 from modules.mt1_telegram import TelegramModule
-from modules.gui import MainWindow
-from modules.bot_manager import BotManager
+
 
 async def cleanup(telegram_module, bot_manager, db_module):
     """Cleanup resources before exit."""
@@ -35,6 +39,21 @@ async def cleanup(telegram_module, bot_manager, db_module):
 
 def main():
     try:
+        # Setup logging
+        log_dir = os.path.join(os.path.dirname(__file__), 'sessions', 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        
+        log_file = os.path.join(log_dir, f'app_{datetime.now().strftime("%Y%m%d")}.log')
+        
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()  # This will also show logs in console
+            ]
+        )
+        
         # Initialize application
         app = QApplication(sys.argv)
         loop = QEventLoop(app)

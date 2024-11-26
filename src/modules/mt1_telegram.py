@@ -1,17 +1,30 @@
-import os
-from telethon import TelegramClient, errors, functions, types
-from telethon.tl.functions.channels import GetFullChannelRequest, JoinChannelRequest
-from telethon.tl.types import Channel, User
-import logging
 import asyncio
-from typing import Optional, Any, List, Union, Callable, Dict
 import json
-from datetime import datetime, timedelta
-import re
-from telethon.tl.functions.channels import LeaveChannelRequest
-from telethon.tl.types import UserStatusOnline, UserStatusRecently, Message, MessageMediaDocument, MessageMediaPhoto
+import logging
+import os
 import random
+import re
+from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Optional, Union
+
+from telethon import TelegramClient, errors, functions, types
+from telethon.tl.functions.channels import (
+    GetFullChannelRequest,
+    JoinChannelRequest,
+    LeaveChannelRequest,
+)
+from telethon.tl.types import (
+    Channel,
+    Message,
+    MessageMediaDocument,
+    MessageMediaPhoto,
+    User,
+    UserStatusOnline,
+    UserStatusRecently,
+)
+
 from modules.bot_manager import BotManager
+
 
 class TelegramModule:
     def __init__(self, api_id: int, api_hash: str, phone_number: str, 
@@ -1097,7 +1110,12 @@ class TelegramModule:
                 logging.warning("Bot manager not initialized")
                 return False
                 
-            # Если токен изменился, пересоздаем менеджера бота
+            # Skip recreating bot_manager if token matches
+            if self.bot_manager.bot_token == bot_token and self.bot_manager._connected:
+                status = await self.bot_manager.check_status()
+                return status['ok']
+            
+            # Only recreate if needed
             if self.bot_manager.bot_token != bot_token:
                 logging.info("Bot token changed, reinitializing bot manager")
                 await self.bot_manager.stop()
@@ -1108,12 +1126,10 @@ class TelegramModule:
                 )
                 self.bot_manager.set_config_manager(self.config_manager)
             
-            # Проверяем подключение
             if not self.bot_manager._connected:
                 logging.info("Connecting bot...")
                 await self.bot_manager.start()
                 
-            # Проверяем статус
             status = await self.bot_manager.check_status()
             is_connected = status['ok']
             
