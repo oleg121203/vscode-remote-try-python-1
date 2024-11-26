@@ -124,7 +124,7 @@ def main():
                     if db_module:
                         await db_module.disconnect()
                         
-                QTimer.singleShot(0, lambda: loop.create_task(do_cleanup()))
+                QTimer.singleShot(0, lambda: asyncio.create_task(do_cleanup()))
                 
             app.aboutToQuit.connect(cleanup)
             

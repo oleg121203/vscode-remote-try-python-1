@@ -859,16 +859,19 @@ class TrafficLightWidget(QWidget):
         super().__init__(parent)
         self._state = "red"
         self._deleted = False
+        self._prev_state = None
         self.setFixedSize(20, 20)
 
     def set_state(self, state):
-        """Set the state of the traffic light safely with logging."""
+        """Set the state of the traffic light only if it has changed."""
         if not self._deleted and not self.isHidden():
             try:
-                old_state = self._state
-                self._state = state
-                self.update()
-                logging.debug(f"Traffic light state changed from {old_state} to {state}")
+                # Only update if state actually changed
+                if state != self._state:
+                    self._prev_state = self._state
+                    self._state = state
+                    self.update()
+                    logging.debug(f"Traffic light state changed from {self._prev_state} to {state}")
             except RuntimeError:
                 self._deleted = True
                 logging.debug("Widget already deleted, ignoring update")
@@ -1782,7 +1785,7 @@ class MainWindow(QMainWindow):
 
     @asyncSlot()
     async def search_accounts_in_groups_slot(self):
-        """Розпочинає пошук акаунтів у г��упах."""
+        """Розпочи��ає пошук акаунтів у г��упах."""
         self.search_accounts_button.setVisible(False)
         self.progress_bar_accounts.setVisible(True)
         self.pause_button_accounts.setVisible(True)
