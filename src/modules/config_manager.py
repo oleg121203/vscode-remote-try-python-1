@@ -1,14 +1,14 @@
 # modules/config_manager.py
 
 import json
-import os
 import logging
-from typing import Dict, Any
-import time
+import os
 import random
 import tempfile
+import time
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 
 class LoadBalancer:
     def __init__(self):
@@ -16,7 +16,7 @@ class LoadBalancer:
         self.request_count = 0
         self.time_window = timedelta(hours=1)  # Track requests per hour
         self.window_start = datetime.now()
-        self.max_requests_per_window = 100  # Max requests per hour
+        self.max_requests_per_window = float('inf')  # Unlimited requests
         
         # Dynamic delay parameters
         self.base_delay = 2.0  # Base delay in seconds
@@ -33,13 +33,15 @@ class LoadBalancer:
             self.window_start = current_time
 
         # Calculate load factor (0.0 to 1.0)
-        load_factor = self.request_count / self.max_requests_per_window
+        load_factor = self.request_count / (self.max_requests_per_window or 1)
         
-        # Calculate dynamic delay
-        if load_factor < 0.3:
+        # 4 levels of load with proportional delays
+        if load_factor < 0.25:
             delay = self.base_delay
-        elif load_factor < 0.7:
+        elif load_factor < 0.5:
             delay = self.base_delay * 2
+        elif load_factor < 0.75:
+            delay = self.base_delay * 3
         else:
             delay = self.base_delay * self.backoff_factor ** (load_factor * 10)
             
