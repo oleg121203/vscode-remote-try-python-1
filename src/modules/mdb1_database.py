@@ -89,9 +89,11 @@ class DatabaseModule:
             if self._is_closing:
                 return
             
+            logging.info(f"Attempting to connect to database at {self.host}:{self.port}")
+            
             self.pool = await aiomysql.create_pool(
                 host=self.host,
-                port=self.port,  # Use the port parameter
+                port=self.port,
                 user=self.user,
                 password=self.password,
                 db=self.database,
@@ -99,28 +101,26 @@ class DatabaseModule:
                 use_unicode=True,
                 charset='utf8mb4'
             )
+            
+            # Test the connection
+            async with self.pool.acquire() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute("SELECT VERSION()")
+                    version = await cur.fetchone()
+                    logging.info(f"Successfully connected to MySQL version: {version[0]}")
+                    
             self._is_closing = False
-            logging.info("Connected to the database.")
+            logging.info(f"Database connection pool created successfully")
+            
         except Exception as e:
-            logging.error(f"Failed to connect to the database: {e}")
+            logging.error(f"Failed to connect to database: {str(e)}")
+            if 'Connection refused' in str(e):
+                logging.error(f"Make sure MySQL is running and accessible at {self.host}:{self.port}")
             self.pool = None
+            raise
 
     async def disconnect(self):
         """Закрывает пул соединений с базой данных."""
-        if self.pool and not self._is_closing:
-            self._is_closing = True
-            self.pool.close()
-            await self.pool.wait_closed()
-            self.pool = None
-            logging.info("Disconnected from the database.")
-
-    async def reopen(self):
-        """Повторно открывает соединение с базой данных."""
-        await self.disconnect()
-        await self.connect()
-
-    async def is_connected(self) -> bool:
-        """Проверяет подключение к базе данных."""
         if not self.pool or self._is_closing:
             return False
             
@@ -464,6 +464,63 @@ class DatabaseModule:
 
     async def optimize_tables(self) -> bool:
         """Optimize database tables."""
+        try:
+            async with self.pool.acquire() as conn:
+                async with conn.cursor() as cur:
+                    for table in ['users', 'groups', 'participants']:
+                        await cur.execute(f"OPTIMIZE TABLE {table}")
+                    logging.info("Database tables optimized")
+                    return True
+                    
+        except Exception as e:
+            logging.error(f"Failed to optimize tables: {e}")
+            return False
+
+    async def test_connection(self) -> Dict[str, Any]:
+        """Test database connection and return status info."""
+        status = {
+            'connected': False,
+            'version': None,
+            'character_set': None,
+            'error': None
+        }
+        
+        try:
+            if not self.pool:
+                await self.connect()
+                
+            async with self.pool.acquire() as conn:
+                async with conn.cursor() as cur:
+                    # Check version
+                    await cur.execute("SELECT VERSION()")
+                    status['version'] = (await cur.fetchone())[0]
+                    
+                    # Check character set
+                    await cur.execute("SHOW VARIABLES LIKE 'character_set_database'")
+                    status['character_set'] = (await cur.fetchone())[1]
+                    
+                    status['connected'] = True
+                    logging.info(f"Database connected successfully. Version: {status['version']}")
+                    
+        except Exception as e:
+            status['error'] = str(e)
+            logging.error(f"Connection test failed: {e}")
+            
+        return status
+
+    async def is_connected(self) -> bool:
+        """Check if database is connected."""
+        if not self.pool:
+            return False
+        try:
+            async with self.pool.acquire() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute("SELECT 1")
+                    return True
+        except:
+            return False
+
+    # Додайте інші методи, які можуть бути необхідні для вашого додатку
         try:
             async with self.pool.acquire() as conn:
                 async with conn.cursor() as cur:

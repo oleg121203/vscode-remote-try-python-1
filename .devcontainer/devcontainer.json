@@ -10,7 +10,7 @@
     "customizations": {
         "vscode": {
             "settings": {
-                "files.autoSave": "afterDelay",
+                "files.autoSave": "onFocusChange",
                 "files.autoSaveDelay": 3000,
                 "editor.formatOnSave": true,
                 "[python]": {
@@ -20,7 +20,8 @@
                 "editor.codeActionsOnSave": {
                     "source.organizeImports": true,
                     "source.fixAll": true,
-                    "source.fixAll.sortImports": true
+                    "source.fixAll.sortImports": true,
+                    "source.fixAll.docformatter": true  // Добавлено для docformatter
                 },
                 "python.languageServer": "Pylance",
                 "python.analysis.autoImportCompletions": true,
@@ -47,19 +48,39 @@
                 ],
                 "isort.args": [
                     "--profile",
-                    "black"
+                    "black",
+                    "--multi-line",
+                    "3",
+                    "--include-trailing-comma",
+                    "--force-grid-wrap",
+                    "0",
+                    "--use-parentheses",
+                    "--line-after-imports",
+                    "--line-before-comment"
                 ],
                 "isort.check": true,
                 "autoDocstring.docstringFormat": "google",
                 "autoDocstring.startOnNewLine": true,
+                "docformatter.args": [
+                    "--in-place",
+                    "--blank",
+                    "--wrap-summaries",
+                    "120",
+                    "--wrap-descriptions",
+                    "120"
+                ],
                 "python.analysis.diagnosticMode": "workspace",
                 "python.analysis.importFormat": "relative",
                 "python.linting.flake8Enabled": true,
                 "python.linting.flake8Args": [
-                    "--max-line-length=88"
+                    "--max-line-length=88",
+                    "--ignore=E203,W503"  // Игнорирование конфликтующих правил
                 ],
                 "mypy.enabled": true,
-                "mypy.runUsingActiveInterpreter": true
+                "mypy.runUsingActiveInterpreter": true,
+                "mypy.args": [
+                    "--strict"  // Строгий режим проверки типов
+                ]
             },
             "extensions": [
                 "ms-python.python",
@@ -74,7 +95,8 @@
                 "ms-python.black-formatter",
                 "ms-python.isort",
                 "ms-python.flake8",
-                "ms-python.mypy-type-checker"
+                "ms-python.mypy-type-checker",
+                "ms-python.docformatter"  // Добавлено расширение для docformatter
             ]
         }
     },

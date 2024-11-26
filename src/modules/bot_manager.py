@@ -221,22 +221,53 @@ class BotManager:
             logging.warning(f"Bot couldn't access profile data for user {user_id}: {e}")
             return None
 
-    async def monitor_group(self, group_id: int, config: Dict[str, Any]):
-        """Monitor group activity with configured limits."""
-        try:
-            max_members = config['bot_workload']['max_monitored_members_per_group']
-            group = await self.bot.get_entity(group_id)
-            participants = await self.bot.get_participants(group, limit=max_members)
+    async def get_group_members(self, group_id: int) -> List[Dict[str, Any]]:
+        """Получение участников группы через бота."""
+        if not self._connected:
+            raise Exception("Bot not connected")
             
-            return {
-                'group_id': group_id,
-                'members_count': len(participants),
-                'bot_accessible': True,
-                'members': [p.id for p in participants]
-            }
+        try:
+            members = []
+            async for member in self.bot.iter_participants(group_id):
+                members.append({
+                    'id': member.id,
+                    'first_name': member.first_name,
+                    'last_name': member.last_name,
+                    'username': member.username,
+                    'phone': getattr(member, 'phone', None),
+                    'bot': member.bot,
+                    'access_hash': member.access_hash
+                })
+            return members
+            
         except Exception as e:
-            logging.warning(f"Bot couldn't monitor group {group_id}: {e}")
-            return None
+            logging.error(f"Bot failed to get group members: {e}")
+            raise
+
+    async def monitor_group(self, group_id: int, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Мониторинг группы с учетом настроек."""
+        result = {
+            'group_id': group_id,
+            'members': [],
+            'bot_accessible': False,
+            'error': None
+        }
+        
+        try:
+            max_members = config.get('bot_workload', {}).get('max_monitored_members_per_group', 100)
+            
+            members = await self.get_group_members(group_id)
+            if len(members) <= max_members:
+                result['members'] = members
+                result['bot_accessible'] = True
+            else:
+                result['error'] = f"Group too large for bot monitoring: {len(members)} members"
+                
+        except Exception as e:
+            result['error'] = str(e)
+            logging.error(f"Group monitoring failed: {e}")
+            
+        return result
 
     def add_message_handler(self, callback):
         """Add message event handler."""

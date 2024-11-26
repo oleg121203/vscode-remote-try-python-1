@@ -369,7 +369,7 @@ class TelegramModule:
                                     continue
 
                                 try:
-                                    # Отриму��мо повну інформацію про групу
+                                    # Отримуємо повну інформацію про групу
                                     full_chat = await self.client(GetFullChannelRequest(channel=chat))
                                     participants_count = getattr(full_chat.full_chat, 'participants_count', 0)
 
@@ -1195,6 +1195,127 @@ class TelegramModule:
 
     async def is_bot_connected(self) -> bool:
         """Check if bot is currently connected."""
+        try:
+            if not self.bot_manager:
+                return False
+                
+            return self.bot_manager._connected
+            
+        except Exception as e:
+            logging.error(f"Error checking bot connection: {e}")
+            return False
+
+    async def delegate_task(self, task_type: str, target_id: int, **kwargs) -> Dict[str, Any]:
+        """Умное делегирование задач между ботом и аккаунтом."""
+        result = {
+            'success': False,
+            'data': None,
+            'executor': None,
+            'error': None
+        }
+        
+        try:
+            # Сначала пробуем через бота
+            if self.bot_manager and await self.bot_manager.is_connected():
+                try:
+                    if task_type == 'get_participants':
+                        result['data'] = await self.bot_manager.get_group_members(target_id)
+                        result['executor'] = 'bot'
+                        result['success'] = True
+                        return result
+                except Exception as e:
+                    logging.warning(f"Bot failed task {task_type}: {e}, falling back to account")
+
+            # Если бот не смог или недоступен - используем аккаунт
+            if await self.is_connected():
+                if task_type == 'get_participants':
+                    entity = await self.get_entity(target_id)
+                    result['data'] = await self.get_participants(entity)
+                    result['executor'] = 'account'
+                    result['success'] = True
+                    return result
+                    
+            raise Exception("Neither bot nor account could complete the task")
+            
+        except Exception as e:
+            result['error'] = str(e)
+            logging.error(f"Task delegation failed: {e}")
+            
+        return result
+
+    async def smart_scan_group(self, group_id: int) -> Dict[str, Any]:
+        """Умное сканирование группы с автоматическим выбором метода."""
+        scan_result = {
+            'members': [],
+            'method_used': None,
+            'success': False,
+            'error': None
+        }
+        
+        try:
+            # Проверяем конфигурацию и лимиты
+            account_config = self.config_manager.get_account_config()
+            bot_config = self.config_manager.get_bot_config()
+            
+            # Пробуем сначала через бота если он настроен
+            if bot_config.get('token') and self.bot_manager:
+                try:
+                    members = await self.bot_manager.get_group_members(group_id)
+                    if members:
+                        scan_result['members'] = members
+                        scan_result['method_used'] = 'bot'
+                        scan_result['success'] = True
+                        return scan_result
+                except Exception as e:
+                    logging.warning(f"Bot scan failed: {e}, trying account")
+
+            # Если бот не справился или недоступен - используем аккаунт
+            if account_config.get('backup_scan', {}).get('enabled', True):
+                members = await self.get_participants(group_id)
+                scan_result['members'] = members
+                scan_result['method_used'] = 'account'
+                scan_result['success'] = True
+                return scan_result
+                
+        except Exception as e:
+            scan_result['error'] = str(e)
+            logging.error(f"Smart scan failed: {e}")
+            
+        return scan_result
+
+    async def get_participants_with_fallback(self, group: Channel) -> List[User]:
+        """Try to get participants using bot first, fall back to account if needed."""
+        if self.bot_manager:
+            try:
+                await self.bot_manager.monitor_group(group.id, {'bot_workload': {
+                    'max_monitored_members_per_group': 100
+                }})
+                if result and result['bot_accessible']:
+                    return result['members']
+            except Exception as e:
+                logging.warning(f"Bot failed to get participants, falling back to account: {e}")
+        
+        return await self.get_participants(group)
+
+    async def get_user_profile_with_fallback(self, user_id: int) -> Optional[Dict[str, Any]]:
+        """Try to get user profile using bot first, fall back to account if needed."""
+        if self.bot_manager:
+            try:
+                await self.bot_manager.get_profile_data(user_id)
+                if profile:
+                    return profile
+            except Exception as e:
+                logging.warning(f"Bot failed to get profile, falling back to account: {e}")
+        
+        try:
+            await self.client.get_entity(user_id)
+            return self.extract_user_info(user)
+        except Exception as e:
+            logging.error(f"Failed to get user profile: {e}")
+            return None
+
+    async def is_bot_connected(self) -> bool:
+        """Check if bot is connected and working."""
         try:
             if not self.bot_manager:
                 return False

@@ -217,7 +217,7 @@ class ConfigManager:
             logging.error(f"Failed to save initial configuration: {e}")
 
     def save_config(self):
-        """Зберігає поточну конфігурацію до файлу атомарно."""
+        """Зберігає поточну конфігур��цію до файлу атомарно."""
         # Ensure directory exists
         os.makedirs(os.path.dirname(os.path.abspath(self.config_file)), exist_ok=True)
         
@@ -302,7 +302,7 @@ class ConfigManager:
         return self.config.get('limits', self.get_default_config()['limits'])
 
     def set_telegram_config(self, api_id: int, api_hash: str, phone_number: str):
-        """Встановлює конфігурацію дл�� Telegram."""
+        """Встановлює конфігурацію для Telegram."""
         self.config['telegram'] = {
             'api_id': api_id,
             'api_hash': api_hash,
@@ -385,7 +385,7 @@ class ConfigManager:
                 },
                 'backup_scan': {
                     'enabled': True,
-                    'description': 'Акау��т збирає дані, якщо бот не отримав доступ'
+                    'description': 'Акаунт збирає дані, якщо бот не отримав доступ'
                 }
             },
             'bot': {
@@ -421,28 +421,55 @@ class ConfigManager:
     def get_limit_presets(self) -> Dict[str, Dict[str, Any]]:
         return {
             'minimum': {
-                'description': 'Safe limits for minimal activity',
-                'max_accounts': 2,
-                'max_groups_per_account': 10,
-                'max_messages_per_day': 50,
-                'delay_min': 3,
-                'delay_max': 7
+                'description': 'Безопасные лимиты для минимальной активности',
+                'account_limits': {
+                    'max_accounts': 1,
+                    'max_groups_per_account': 5,
+                    'max_messages_per_day': 50,
+                    'delay_min': 3,
+                    'delay_max': 7
+                },
+                'bot_limits': {
+                    'max_bots': 1,
+                    'max_groups_per_bot': 5,
+                    'max_messages_per_day': 50,
+                    'delay_min': 3,
+                    'delay_max': 7
+                }
             },
             'standard': {
-                'description': 'Balanced limits for regular usage', 
-                'max_accounts': 5,
-                'max_groups_per_account': 20,
-                'max_messages_per_day': 150,
-                'delay_min': 2,
-                'delay_max': 5
+                'description': 'Сбалансированные лимиты для обычного использования',
+                'account_limits': {
+                    'max_accounts': 3,
+                    'max_groups_per_account': 15,
+                    'max_messages_per_day': 100,
+                    'delay_min': 2,
+                    'delay_max': 5
+                },
+                'bot_limits': {
+                    'max_bots': 2,
+                    'max_groups_per_bot': 15,
+                    'max_messages_per_day': 100,
+                    'delay_min': 2,
+                    'delay_max': 5
+                }
             },
             'maximum': {
-                'description': 'Extended limits for advanced usage',
-                'max_accounts': 10,
-                'max_groups_per_account': 50,
-                'max_messages_per_day': 200,
-                'delay_min': 1,
-                'delay_max': 3
+                'description': 'Повышенные лимиты для продвинутого использования',
+                'account_limits': {
+                    'max_accounts': 5,
+                    'max_groups_per_account': 30,
+                    'max_messages_per_day': 150,
+                    'delay_min': 1,
+                    'delay_max': 3
+                },
+                'bot_limits': {
+                    'max_bots': 3,
+                    'max_groups_per_bot': 30,
+                    'max_messages_per_day': 150,
+                    'delay_min': 1,
+                    'delay_max': 3
+                }
             },
             'unlimited': {
                 'description': 'Unlimited requests with smart delays',
@@ -619,6 +646,7 @@ class ConfigManager:
         """Returns monitoring configuration."""
         return self.config.get('monitoring', {})
 
+                        await cursor.execute(schema)
     def get_config(self) -> Dict[str, Any]:
         """Returns the entire configuration."""
         return self.config
@@ -641,6 +669,14 @@ class DatabaseModule:
                 async with conn.cursor() as cursor:
                     for table_name, schema in self.TABLE_SCHEMAS.items():
                         await cursor.execute(schema)
+        except Exception as e:
+            logging.error(f"Failed to ensure tables exist: {e}")
+
+if __name__ == "__main__":
+    pass
+
+if __name__ == "__main__":
+    pass
         except Exception as e:
             logging.error(f"Failed to ensure tables exist: {e}")
 

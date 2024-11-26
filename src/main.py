@@ -12,7 +12,7 @@ from datetime import datetime
 
 import pymysql
 from PyQt6.QtCore import QTimer
-from PyQt6.QtWidgets import QApplication, QMessageBox
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
 from qasync import QEventLoop
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TF logging
@@ -54,22 +54,26 @@ def main():
     db_module = None
     
     try:
-        # Setup logging
-        log_dir = os.path.join(os.path.dirname(__file__), 'sessions', 'logs')
+        # Setup logging with absolute path
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        log_dir = os.path.join(current_dir, '..', 'sessions', 'logs')
+        
+        print(f"Creating log directory at: {log_dir}")
         os.makedirs(log_dir, exist_ok=True)
         
         log_file = os.path.join(log_dir, f'app_{datetime.now().strftime("%Y%m%d")}.log')
+        print(f"Log file will be created at: {log_file}")
         
         logging.basicConfig(
             level=logging.DEBUG,
             format='%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
             handlers=[
-                logging.FileHandler(log_file),
-                logging.StreamHandler()  # This will also show logs in console
+                logging.FileHandler(log_file, encoding='utf-8', mode='a'),
+                logging.StreamHandler()
             ]
         )
         
-        logging.debug("Logging setup complete. This is a test log message.")
+        logging.info("Starting application...")
         
         # Initialize config manager and check config
         config_manager = ConfigManager()
@@ -86,7 +90,15 @@ def main():
             if 'port' not in db_config:
                 db_config['port'] = 3306  # Add default port if not specified
             db_module = DatabaseModule(**db_config)
-            await db_module.connect()
+            connection_status = await db_module.test_connection()
+    
+            if connection_status['error']:
+                logging.error(f"Database connection failed: {connection_status['error']}")
+                QMessageBox.critical(None, "Error", 
+                                   f"Could not connect to database:\n{connection_status['error']}")
+                return None
+                
+            logging.info(f"Database connection successful: MySQL {connection_status['version']}")
             
             # Initialize Telegram module
             telegram_config = config_manager.get_telegram_config()
@@ -142,3 +154,30 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+class MainWindow(QMainWindow):
+    # ...existing code...
+    
+    @asyncSlot()
+    async def search_accounts_in_groups(self, auto_start=False):
+        """Поиск аккаунтов с умным делегированием задач."""
+        try:
+            for group in self.groups_list:
+                # Умное сканирование группы
+                scan_result = await self.telegram_module.smart_scan_group(group.id)
+                
+                if scan_result['success']:
+                    logging.info(f"Group {group.id} scanned using {scan_result['method_used']}")
+                    
+                    # Обработка результатов
+                    for member in scan_result['members']:
+                        await self.db_module.upsert_user(member)
+                        self.add_account_to_table(member)
+                else:
+                    logging.error(f"Failed to scan group {group.id}: {scan_result['error']}")
+                    
+        except Exception as e:
+            logging.error(f"Search accounts error: {e}")
+            QMessageBox.critical(self, "Error", str(e))
+
+    # ...existing code...
