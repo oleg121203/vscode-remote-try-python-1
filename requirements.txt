@@ -12,6 +12,7 @@ PyQt6_sip==13.4.1
 aiomysql==0.2.0
 aiosqlite==0.20.0
 PyMySQL==1.1.1
+mysql-connector-python==8.0.33  # Добавлен mysql-connector-python
 
 # Development tools
 black==24.1.1
@@ -74,3 +75,7 @@ typing_extensions==4.12.2
 tzdata==2024.2
 urllib3==2.2.3
 XlsxWriter==3.2.0
+
+# System dependencies
+# Please install the following package using your system's package manager:
+# sudo apt install -y default-mysql-client

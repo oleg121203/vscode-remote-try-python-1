@@ -1,6 +1,7 @@
 # main.py
 
 import asyncio
+import json
 import logging
 import os
 import signal
@@ -9,6 +10,7 @@ import threading
 import warnings
 from datetime import datetime
 
+import pymysql
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QApplication, QMessageBox
 from qasync import QEventLoop
@@ -184,6 +186,24 @@ def main():
             except Exception as cleanup_error:
                 logging.error(f"Ошибка при аварийной очистке: {cleanup_error}")
         sys.exit(1)
+
+    with open('/workspaces/vscode-remote-try-python/config.json', 'r') as config_file:
+        config = json.load(config_file)
+        db_config = config['database']
+
+    print(f"Connecting to database with config: {db_config}")
+
+    try:
+        connection = pymysql.connect(**db_config)
+        cursor = connection.cursor()
+        cursor.execute("SELECT DATABASE();")
+        database_name = cursor.fetchone()
+        print(f"Connected to database: {database_name}")
+        cursor.close()
+        connection.close()
+    except pymysql.MySQLError as e:
+        logging.error(f"Failed to connect to the database: {e}")
+        QMessageBox.critical(None, "Error", "Failed to connect to the database.")
 
 async def main_async():
     # Инициализация асинхронных модулей или других необходимых операций

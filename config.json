@@ -5,10 +5,10 @@
         "phone_number": "18888412187"
     },
     "database": {
-        "host": "127.0.0.1",
-        "user": "root",
-        "password": "",
-        "database": "telegram_db"
+        "host": "172.17.0.1",
+        "user": "test_user",
+        "password": "test_password",
+        "database": "test_db"
     },
     "interface": {
         "transparency": 100,

@@ -1,9 +1,27 @@
 # modules/mdb1_database.py
 
 import asyncio
-import aiomysql
+import json
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
+
+import aiomysql
+import pymysql
+
+with open('/workspaces/vscode-remote-try-python/config.json', 'r') as config_file:
+    config = json.load(config_file)
+    db_config = config['database']
+
+print(f"Connecting to database with config: {db_config}")
+
+connection = pymysql.connect(**db_config)
+cursor = connection.cursor()
+cursor.execute("SELECT DATABASE();")
+database_name = cursor.fetchone()
+print(f"Connected to database: {database_name}")
+cursor.close()
+connection.close()
+
 
 class DatabaseModule:
     # Table schemas
@@ -85,7 +103,7 @@ class DatabaseModule:
             logging.info("Disconnected from the database.")
 
     async def is_connected(self) -> bool:
-        """Перевіряє, чи є пі��ключення до бази даних."""
+        """Перевіряє, чи є підключення до бази даних."""
         if not self.pool:
             return False
         try:
@@ -426,4 +444,4 @@ class DatabaseModule:
             logging.error(f"Failed to optimize tables: {e}")
             return False
 
-    # Додайте інші методи, які можуть бути необхідні для ваш��го додатку
+    # Додайте інші методи, які можуть бути необхідні для вашого додатку
