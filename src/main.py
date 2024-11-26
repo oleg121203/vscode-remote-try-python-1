@@ -144,7 +144,7 @@ def main():
 
         def handle_exit():
             # Schedule cleanup using QTimer to avoid running coroutines directly
-            QTimer.singleShot(0, lambda: asyncio.create_task(async_cleanup()))
+            QTimer.singleShot(0, lambda: loop.create_task(async_cleanup()))
 
         app.aboutToQuit.connect(handle_exit)
 
@@ -166,7 +166,7 @@ def main():
         main_window.setup_authentication()
         main_window.show()
 
-        # Запуск циклу подій
+        # Запуск ц��клу подій
         with loop:
             loop.run_until_complete(main_async())
             loop.run_forever()

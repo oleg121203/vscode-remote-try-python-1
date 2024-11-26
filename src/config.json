@@ -63,7 +63,10 @@
         "profile_data": {
             "enabled": true,
             "description": "Бот збирає профільні дані учасників"
-        }
+        },
+        "status": "error",
+        "last_error": "Missing bot credentials",
+        "last_active": null
     },
     "data_sync": {
         "description": "Налаштування для синхронізації даних",

@@ -611,7 +611,7 @@ class ConfigGUI(QDialog):
 • Авто-регулювання затримки
 • 4 рівні навантаження (0.25, 0.5, 0.75, 1.0)
 • Базова затримка: 2с
-��� Максимальна затримка: 10с
+• Максимальна затримка: 10с
             """.strip()
         else:
             info_text = f"""
@@ -1208,7 +1208,7 @@ class MainWindow(QMainWindow):
         self.file_processor = FileProcessor()
         self.setAcceptDrops(True)  # Enable file drag and drop
 
-        # Додайте л��чильник акаунтів
+        # Додайте ліч��льник акаунтів
         self.accounts_count = 0
 
         # Add bot connection state
@@ -1619,7 +1619,7 @@ class MainWindow(QMainWindow):
         self.change_theme(theme)
 
     def add_dynamic_widgets_to_top_bar(self):
-        """Додає індикатори підключення та кнопки до верхньої панелі."""
+        """��одає індикатори підключення та кнопки до верхньої панелі."""
         lights_container = QWidget()
         lights_layout = QHBoxLayout()
         lights_layout.setContentsMargins(0, 0, 0, 0)
@@ -2334,9 +2334,19 @@ class MainWindow(QMainWindow):
             self.bot_light.set_state("red")
 
     def setup_authentication(self):
-        """Setup SMS authentication window."""
-        self.auth_dialog = AuthDialog(self)
-        self.auth_dialog.show()
+        """Настройка аутентификации пользователя."""
+        # Исправленный вызов AuthDialog с необходимыми аргу��ентами
+        self.auth_dialog = AuthDialog(
+            title="Авторизация",
+            label="Пожалуйста, введите свои учетные данные:",
+            parent=self
+        )
+        if self.auth_dialog.exec() == QDialog.DialogCode.Accepted:
+            # Обработка успешной аутентификации
+            pass
+        else:
+            # Обработка отмены аутент��фикации
+            sys.exit(0)
 
     def restart_session(self):
         """Handle session restart."""
