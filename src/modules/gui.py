@@ -1212,6 +1212,10 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         # Initialize fetch_participants_action first
+        self.fetch_participants_action = QAction(self.translate('fetch_participants'), self)
+        self.fetch_participants_action.triggered.connect(self.on_fetch_participants)
+        
+        # Initialize group context menu
         self.group_context_menu = QMenu(self)
         self.group_context_menu.addAction(self.fetch_participants_action)
 
@@ -1959,7 +1963,7 @@ class MainWindow(QMainWindow):
         logging.debug(f"Language changed to {language}")
 
     def change_theme(self, theme_name: str) -> None:
-        """Змінює тему інтерфейсу."""
+        """Змінює тему інтер��ейсу."""
         global current_theme
         if (theme_name in themes):
             current_theme = theme_name
@@ -2069,7 +2073,7 @@ class MainWindow(QMainWindow):
             logging.error(f"Error during shutdown: {e}")
 
     def _track_task(self, task):
-        """Відстежує асинхронні задачі для забезпечення належного завершення."""
+        """Відстежує асинхронні задачі для забезпечення нале��ного завершення."""
         self._pending_tasks.add(task)
         task.add_done_callback(self._remove_task)
 
