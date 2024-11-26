@@ -1224,6 +1224,14 @@ class MainWindow(QMainWindow):
         self.check_timer.timeout.connect(self.check_connections)
         self.check_timer.start(5000)  # Проверяем соединения каждые 5 секунд
 
+        # Add task management
+        self._active_tasks = set()
+        self._task_lock = asyncio.Lock()
+        self._check_lock = asyncio.Lock()
+        self.connection_check_timer = QTimer()
+        self.connection_check_timer.timeout.connect(lambda: self._schedule_check())
+        self.connection_check_timer.start(5000)  # Check every 5 seconds
+
     def init_ui(self):
         # Initialize fetch_participants_action first
         self.fetch_participants_action = QAction(self.translate('fetch_participants'), self)
@@ -1666,7 +1674,7 @@ class MainWindow(QMainWindow):
 
     @asyncSlot()
     async def open_keyword_dialog(self):
-        """Відкриває діалогове вікно ключових слів та ініціює розумний пошук."""
+        """Відкриває діалогове вікно к��ючових слів та ініціює розумний пошук."""
         dialog = KeywordDialog(parent=self)
         result = await dialog.asyncExec()
         if result:
@@ -2350,3 +2358,108 @@ class MainWindow(QMainWindow):
     def restart_session(self):
         """Handle session restart."""
         asyncio.create_task(self.telegram_module.restart_session())
+
+    async def _run_task(self, coro):
+        """Safely run a coroutine as a task."""
+        try:
+            task = asyncio.create_task(coro)
+            self._active_tasks.add(task)
+            await task
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logging.error(f"Task error: {e}")
+        finally:
+            self._active_tasks.discard(task)
+
+    def _schedule_check(self):
+        """Schedule connection check without conflicts."""
+        if not self._check_lock.locked():
+            asyncio.create_task(self._safe_check_connections())
+
+    async def _safe_check_connections(self):
+        """Thread-safe connection check."""
+        try:
+            async with self._check_lock:
+                if self.telegram_module:
+                    is_connected = await self.telegram_module.is_connected()
+                    is_authorized = await self.telegram_module.is_user_authorized()
+                    self.tg_connected = is_connected and is_authorized
+                    self.tg_light.set_state("green" if self.tg_connected else "red")
+
+                if self.db_module:
+                    self.db_connected = await self.db_module.is_connected()
+                    self.db_light.set_state("green" if self.db_connected else "red")
+                    
+                # Check bot status if telegram is connected
+                if self.tg_connected and self.telegram_module.bot_manager:
+                    bot_status = await self.telegram_module.bot_manager.check_status()
+                    self.bot_connected = bot_status['ok']
+                    self.bot_light.set_state("green" if self.bot_connected else "red")
+                else:
+                    self.bot_connected = False
+                    self.bot_light.set_state("red")
+        except Exception as e:
+            logging.error(f"Connection check failed: {e}")
+            self.tg_light.set_state("red")
+            self.db_light.set_state("red")
+            self.bot_light.set_state("red")
+
+    @asyncSlot()
+    async def start_async_tasks(self):
+        """Initialize async components safely."""
+        try:
+            async with self._task_lock:
+                # Initial connection check
+                await self._safe_check_connections()
+                
+                # Connect to telegram if needed
+                if not self.tg_connected and self.telegram_module:
+                    await self._run_task(self.connect_to_telegram())
+                    
+        except Exception as e:
+            logging.error(f"Error in start_async_tasks: {e}")
+            self.show_error_message(str(e))
+
+    async def initial_connection_check(self):
+        """Perform initial connection check."""
+        await self._safe_check_connections()
+
+    # Replace the old check_connections method
+    @asyncSlot()
+    async def check_connections(self):
+        """Regular connection status check."""
+        await self._safe_check_connections()
+
+    async def connect_to_telegram(self):
+        """Connect to Telegram with proper error handling."""
+        try:
+            async with self._task_lock:
+                if not self.telegram_module:
+                    return
+                    
+                await self.telegram_module.connect()
+                if not await self.telegram_module.is_user_authorized():
+                    await self._handle_telegram_auth()
+                else:
+                    self.tg_connected = True
+                    self.tg_light.set_state("green")
+        except Exception as e:
+            self.tg_connected = False
+            self.tg_light.set_state("red")
+            logging.error(f"Telegram connection error: {e}")
+            raise
+
+    def closeEvent(self, event):
+        """Handle window close with proper cleanup."""
+        # Cancel any running tasks
+        for task in self._active_tasks:
+            task.cancel()
+        
+        # Stop the check timer
+        self.connection_check_timer.stop()
+        
+        # Proceed with normal cleanup
+        self._widgets_active = False
+        asyncio.create_task(self.handle_shutdown())
+        event.accept()

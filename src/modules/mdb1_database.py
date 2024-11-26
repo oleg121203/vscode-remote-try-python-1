@@ -79,10 +79,14 @@ class DatabaseModule:
         self.password = password
         self.database = database
         self.pool: Optional[aiomysql.Pool] = None
+        self._is_closing = False
 
     async def connect(self):
-        """Підключається до бази даних та створює пул з'єднань."""
+        """Подключается к базе данных и создает пул соединений."""
         try:
+            if self._is_closing:
+                return
+            
             self.pool = await aiomysql.create_pool(
                 host=self.host,
                 user=self.user,
@@ -90,30 +94,53 @@ class DatabaseModule:
                 db=self.database,
                 autocommit=True
             )
+            self._is_closing = False
             logging.info("Connected to the database.")
         except Exception as e:
             logging.error(f"Failed to connect to the database: {e}")
             self.pool = None
 
     async def disconnect(self):
-        """Закриває пул з'єднань з базою даних."""
-        if self.pool:
+        """Закрывает пул соединений с базой данных."""
+        if self.pool and not self._is_closing:
+            self._is_closing = True
             self.pool.close()
             await self.pool.wait_closed()
+            self.pool = None
             logging.info("Disconnected from the database.")
 
+    async def reopen(self):
+        """Повторно открывает соединение с базой данных."""
+        await self.disconnect()
+        await self.connect()
+
     async def is_connected(self) -> bool:
-        """Перевіряє, чи є підключення до бази даних."""
-        if not self.pool:
+        """Проверяет подключение к базе данных."""
+        if not self.pool or self._is_closing:
             return False
+            
         try:
             async with self.pool.acquire() as conn:
                 async with conn.cursor() as cur:
                     await cur.execute("SELECT 1")
             return True
-        except Exception as e:
-            logging.error(f"Database connection check failed: {e}")
+        except:
             return False
+
+    async def ensure_connection(self):
+        """Проверяет и восстанавливает соединение при необходимости."""
+        if not await self.is_connected():
+            await self.reopen()
+
+    async def execute_with_retry(self, operation):
+        """Выполняет операцию с базой данных, повторяя при ошибках соединения."""
+        try:
+            await self.ensure_connection()
+            return await operation()
+        except Exception as e:
+            logging.error(f"Database operation failed: {e}")
+            await self.reopen()
+            return await operation()
 
     async def check_table_exists(self, table_name: str) -> bool:
         """Check if a table exists in the database."""

@@ -42,9 +42,17 @@ async def cleanup(telegram_module, bot_manager, db_module):
 # Removed duplicate main function
 
 def main():
+    # Initialize QApplication first
+    app = QApplication(sys.argv)
+    
+    # Create and set event loop before any async operations
+    loop = QEventLoop(app)
+    asyncio.set_event_loop(loop)
+    
     telegram_module = None
     bot_manager = None
     db_module = None
+    
     try:
         # Setup logging
         log_dir = os.path.join(os.path.dirname(__file__), 'sessions', 'logs')
@@ -61,153 +69,72 @@ def main():
             ]
         )
         
-        # Initialize application
-        app = QApplication(sys.argv)
-        loop = QEventLoop(app)
-        asyncio.set_event_loop(loop)
-
-        # Fix logging configuration - use 'levelname' instead of 'levelнем'
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s'
-        )
-
-        # Ініціалізація менеджера конфігурації
+        # Initialize config manager and check config
         config_manager = ConfigManager()
-        config_manager.load_config()
-
-        # Перевірка повноти конфігурації
         if not config_manager.is_config_complete():
-            logging.error("Configuration is incomplete. Please fill in all required fields.")
-            QMessageBox.critical(None, "Error", "Configuration is incomplete. Please fill in all required fields.")
-            sys.exit(1)
-
-        # Ініціалізація модулів
-        db_config = config_manager.get_database_config()
-        db_module = DatabaseModule(
-            host=db_config.get('host'),
-            user=db_config.get('user'),
-            password=db_config.get('password'),
-            database=db_config.get('database')
-        )
-
-        telegram_config = config_manager.get_telegram_config()
-        bot_config = config_manager.get_bot_config()
-
-        api_id_raw = telegram_config.get('api_id')
-        # api_id уже проверен в ConfigManager, здесь можно напрямую использовать
-        api_id = api_id_raw
-        
-        telegram_module = TelegramModule(
-            api_id=api_id,
-            api_hash=telegram_config.get('api_hash'),
-            phone_number=telegram_config.get('phone_number'),
-            bot_token=bot_config.get('token')  # Обновлено для соответствия config.json
-        )
-
-        # Подключение к базе данных
-        loop.run_until_complete(db_module.connect())
-
-        # Modify bot initialization
-        bot_manager = None
-        if bot_config.get('token'):
-            try:
-                bot_manager = BotManager(
-                    bot_token=bot_config['token'],
-                    api_id=int(bot_config['api_id']),
-                    api_hash=bot_config['api_hash'],
-                    session_name=bot_config.get('session_name', 'bot_session')
-                )
-                # Connect bot manager with config manager
-                bot_manager.set_config_manager(config_manager)
-                # Start the bot
-                loop.run_until_complete(bot_manager.start())
-                # Check initial status
-                loop.run_until_complete(bot_manager.check_status())
-            except Exception as e:
-                logging.error(f"Failed to initialize bot: {e}")
-                config_manager.update_bot_status('error', str(e))
-                bot_manager = None
-
-        # Перевірка підключення до бази даних та створення таблиць
-        async def initialize_database():
-            db_connected = await db_module.is_connected()
-            if db_connected:
+            QMessageBox.critical(None, "Error", "Configuration is incomplete")
+            return 1
+            
+        # Initialize modules with proper error handling
+        async def init_modules():
+            nonlocal telegram_module, bot_manager, db_module
+            
+            # Initialize database first
+            db_config = config_manager.get_database_config()
+            db_module = DatabaseModule(**db_config)
+            await db_module.connect()
+            
+            # Initialize Telegram module
+            telegram_config = config_manager.get_telegram_config()
+            bot_config = config_manager.get_bot_config()
+            
+            telegram_module = TelegramModule(
+                api_id=int(telegram_config['api_id']),
+                api_hash=telegram_config['api_hash'],
+                phone_number=telegram_config['phone_number'],
+                bot_token=bot_config.get('token')
+            )
+            
+            # Initialize database tables
+            if await db_module.is_connected():
                 await db_module.ensure_tables_exist()
-            else:
-                logging.error("Failed to connect to the database.")
-                QMessageBox.critical(None, "Error", "Failed to connect to the database.")
-                sys.exit(1)
-
-        # Запуск асинхронної ініціалізації бази даних
-        loop.run_until_complete(initialize_database())
-
-        # Create cleanup callback
-        async def async_cleanup():
-            await cleanup(telegram_module, bot_manager, db_module)
-            app.quit()
-
-        def handle_exit():
-            # Schedule cleanup using QTimer to avoid running coroutines directly
-            QTimer.singleShot(0, lambda: loop.create_task(async_cleanup()))
-
-        app.aboutToQuit.connect(handle_exit)
-
-        # Set up signal handlers to use the same cleanup
-        def signal_handler(signum, frame):
-            logging.info(f"Received signal {signum}")
-            handle_exit()
-
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
-
-        main_window = MainWindow(
-            db_module=db_module,
-            telegram_module=telegram_module,
-            db_connected=True,
-            tg_connected=False,
-            config_manager=config_manager
-        )
-        main_window.setup_authentication()
-        main_window.show()
-
-        # Запуск циклу подій
+            
+            # Create main window after modules are initialized
+            main_window = MainWindow(
+                db_module=db_module,
+                telegram_module=telegram_module,
+                db_connected=True,
+                tg_connected=False,
+                config_manager=config_manager
+            )
+            main_window.show()
+            return main_window
+            
+        # Run initialization in event loop
         with loop:
-            loop.run_until_complete(main_async())
+            main_window = loop.run_until_complete(init_modules())
+            
+            def cleanup():
+                # Schedule cleanup using QTimer to avoid coroutine issues
+                async def do_cleanup():
+                    if telegram_module:
+                        await telegram_module.disconnect()
+                    if db_module:
+                        await db_module.disconnect()
+                        
+                QTimer.singleShot(0, lambda: loop.create_task(do_cleanup()))
+                
+            app.aboutToQuit.connect(cleanup)
+            
+            # Run event loop
             loop.run_forever()
-
+            
     except Exception as e:
-        logging.error(f"Ошибка при запуске приложения: {e}")
-        QMessageBox.critical(None, "Критическая ошибка", f"Произошла ошибка: {e}")
-        # Handle cleanup on error differently
-        if 'loop' in locals():
-            try:
-                loop.run_until_complete(cleanup(telegram_module, bot_manager, db_module))
-            except Exception as cleanup_error:
-                logging.error(f"Ошибка при аварийной очистке: {cleanup_error}")
-        sys.exit(1)
-
-    with open('/workspaces/vscode-remote-try-python/config.json', 'r') as config_file:
-        config = json.load(config_file)
-        db_config = config['database']
-
-    print(f"Connecting to database with config: {db_config}")
-
-    try:
-        connection = pymysql.connect(**db_config)
-        cursor = connection.cursor()
-        cursor.execute("SELECT DATABASE();")
-        database_name = cursor.fetchone()
-        print(f"Connected to database: {database_name}")
-        cursor.close()
-        connection.close()
-    except pymysql.MySQLError as e:
-        logging.error(f"Failed to connect to the database: {e}")
-        QMessageBox.critical(None, "Error", "Failed to connect to the database.")
-
-async def main_async():
-    # Инициализация асинхронных модулей или других необходимых операций
-    pass
+        logging.error(f"Error in main: {e}")
+        QMessageBox.critical(None, "Error", str(e))
+        return 1
+        
+    return app.exec()
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
