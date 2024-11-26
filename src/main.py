@@ -38,6 +38,12 @@ async def cleanup(telegram_module, bot_manager, db_module):
         logging.error(f"Error during cleanup: {e}")
 
 def main():
+    # Ініціалізація асинхронних модулів
+    await bot_manager.start()
+    await telegram_module.connect()
+    # ...existing code...
+
+def main():
     try:
         # Setup logging
         log_dir = os.path.join(os.path.dirname(__file__), 'sessions', 'logs')
@@ -159,6 +165,7 @@ def main():
 
         # Запуск циклу подій
         with loop:
+            loop.run_until_complete(main_async())
             loop.run_forever()
 
     except Exception as e:

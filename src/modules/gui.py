@@ -189,7 +189,7 @@ class TopBar(QWidget):
 
 
 class AuthDialog(QDialog):
-    def __init__(self, title, label, parent=None):
+    def __init__(self, title: str, label: str, parent=None):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.setModal(True)
@@ -611,7 +611,7 @@ class ConfigGUI(QDialog):
 • Авто-регулювання затримки
 • 4 рівні навантаження (0.25, 0.5, 0.75, 1.0)
 • Базова затримка: 2с
-• Максимальна затримка: 10с
+��� Максимальна затримка: 10с
             """.strip()
         else:
             info_text = f"""
@@ -1208,7 +1208,7 @@ class MainWindow(QMainWindow):
         self.file_processor = FileProcessor()
         self.setAcceptDrops(True)  # Enable file drag and drop
 
-        # Додайте лічильник акаунтів
+        # Додайте л��чильник акаунтів
         self.accounts_count = 0
 
         # Add bot connection state

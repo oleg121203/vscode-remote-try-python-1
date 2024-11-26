@@ -1021,44 +1021,44 @@ class TelegramModule:
                         break
 
                 try:
-                    # Get initial search results
-                    search_results = await self.client(functions.contacts.SearchRequest(
+                    // ...existing code...
+                    await self.client(functions.contacts.SearchRequest(
                         q=query,
                         limit=100
                     ))
                     await asyncio.sleep(self.rate_limit_delay)
 
-                    # Process found channels
+                    // ...existing code...
                     for chat in getattr(search_results, 'chats', []):
                         if not isinstance(chat, Channel):
                             continue
 
-                        # Skip if already processed
+                        // ...existing code...
                         if any(existing.id == chat.id for existing in results):
                             continue
 
                         try:
-                            # Safely get full channel info
-                            full_chat = await self.get_full_channel_safe(chat)
+                            // ...existing code...
+                            await self.get_full_channel_safe(chat)
                             if not full_chat:
                                 continue
 
                             participants_count = getattr(full_chat.full_chat, 'participants_count', 0)
 
-                            # Apply filters
+                            // ...existing code...
                             if participants_count < min_participants:
                                 continue
                             if max_participants and participants_count > max_participants:
                                 continue
 
-                            # Check group type
+                            // ...existing code...
                             if group_type.lower() != 'all':
                                 if group_type.lower() == 'megagroup' and not chat.megagroup:
                                     continue
                                 if group_type.lower() == 'broadcast' and not chat.broadcast:
                                     continue
 
-                            # Add to results
+                            // ...existing code...
                             chat.participants_count = participants_count
                             results.append(chat)
 
@@ -1071,14 +1071,14 @@ class TelegramModule:
                             logging.error(f"Error processing channel {getattr(chat, 'id', 'unknown')}: {e}")
                             continue
 
-                        # Add delay between processing channels
+                        // ...existing code...
                         await asyncio.sleep(self.rate_limit_delay)
 
                 except Exception as e:
                     logging.error(f"Error during search iteration: {e}")
                     continue
 
-            # Sort results by participant count
+            // ...existing code...
             return sorted(results, key=lambda x: getattr(x, 'participants_count', 0) or 0, reverse=True)
 
         except Exception as e:
@@ -1089,7 +1089,7 @@ class TelegramModule:
         """Try to get participants using bot first, fall back to account if needed."""
         if self.bot_manager:
             try:
-                result = await self.bot_manager.monitor_group(group.id, {'bot_workload': {
+                await self.bot_manager.monitor_group(group.id, {'bot_workload': {
                     'max_monitored_members_per_group': 100
                 }})
                 if result and result['bot_accessible']:
@@ -1097,22 +1097,22 @@ class TelegramModule:
             except Exception as e:
                 logging.warning(f"Bot failed to get participants, falling back to account: {e}")
         
-        # Fallback to account
+        // ...existing code...
         return await self.get_participants(group)
 
     async def get_user_profile_with_fallback(self, user_id: int) -> Optional[Dict[str, Any]]:
         """Try to get user profile using bot first, fall back to account if needed."""
         if self.bot_manager:
             try:
-                profile = await self.bot_manager.get_profile_data(user_id)
+                await self.bot_manager.get_profile_data(user_id)
                 if profile:
                     return profile
             except Exception as e:
                 logging.warning(f"Bot failed to get profile, falling back to account: {e}")
         
-        # Fallback to account
+        // ...existing code...
         try:
-            user = await self.client.get_entity(user_id)
+            await self.client.get_entity(user_id)
             return self.extract_user_info(user)
         except Exception as e:
             logging.error(f"Failed to get user profile: {e}")
@@ -1137,12 +1137,12 @@ class TelegramModule:
                 logging.warning("Bot manager not initialized")
                 return False
                 
-            # Skip recreating bot_manager if token matches
+            // ...existing code...
             if self.bot_manager.bot_token == bot_token and self.bot_manager._connected:
-                status = await self.bot_manager.check_status()
+                await self.bot_manager.check_status()
                 return status['ok']
             
-            # Only recreate if needed
+            // ...existing code...
             if self.bot_manager.bot_token != bot_token:
                 logging.info("Bot token changed, reinitializing bot manager")
                 await self.bot_manager.stop()
@@ -1157,7 +1157,7 @@ class TelegramModule:
                 logging.info("Connecting bot...")
                 await self.bot_manager.start()
                 
-            status = await self.bot_manager.check_status()
+            await self.bot_manager.check_status()
             is_connected = status['ok']
             
             if is_connected:
@@ -1187,8 +1187,8 @@ class TelegramModule:
             if not self.bot_manager or not await self.check_bot_status(bot_token):
                 return {}
                 
-            # Get bot profile using getMe method
-            bot_user = await self.bot_manager.bot.get_me()
+            // ...existing code...
+            await self.bot_manager.bot.get_me()
             
             return {
                 'id': bot_user.id,
