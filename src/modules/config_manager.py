@@ -156,8 +156,7 @@ class ConfigManager:
                 os.makedirs(os.path.dirname(os.path.abspath(self.config_file)), exist_ok=True)
                 
                 with open(self.config_file, 'r', encoding='utf-8') as f:
-                    loaded_config = json.load(f)
-                    self.config = loaded_config
+                    self.config = json.load(f)
                 
                 # Ініціалізуємо відсутні секції значеннями за замовчуванням
                 default_config = self.get_default_config()
@@ -166,10 +165,43 @@ class ConfigManager:
                         self.config[section] = default_config[section]
                         logging.warning(f"Added missing section '{section}' with default values")
                 
+                # Перевірка наявності та правильності telegram.api_id
+                telegram_api_id = self.config.get('telegram', {}).get('api_id')
+                if telegram_api_id is None or telegram_api_id == '':
+                    logging.error("Telegram API ID відсутній або порожній у конфігурації.")
+                    raise ValueError("Telegram API ID відсутній або порожній у конфігурації.")
+                
+                if isinstance(telegram_api_id, str):
+                    if telegram_api_id.strip() == '':
+                        logging.error("Telegram API ID не може бути порожнім.")
+                        raise ValueError("Telegram API ID не може бути порожнім.")
+                    try:
+                        self.config['telegram']['api_id'] = int(telegram_api_id)
+                    except ValueError:
+                        logging.error("Telegram API ID повинен бути цілим числом.")
+                        raise
+                
+                elif isinstance(telegram_api_id, (int, float)):
+                    self.config['telegram']['api_id'] = int(telegram_api_id)
+                else:
+                    logging.error("Невідповідний тип для Telegram API ID.")
+                    raise TypeError("Невідповідний тип для Telegram API ID.")
+                
+                try:
+                    self.config['telegram']['api_hash'] = str(self.config['telegram']['api_hash'])
+                    self.config['telegram']['phone_number'] = str(self.config['telegram']['phone_number'])
+                except (ValueError, TypeError):
+                    logging.error("Неверный формат данных в разделе telegram.")
+                    self.config['telegram']['api_hash'] = self.default_config['telegram']['api_hash']
+                    self.config['telegram']['phone_number'] = self.default_config['telegram']['phone_number']
+                
                 logging.info(f"Configuration loaded from {self.config_file}")
                 
             except json.JSONDecodeError as e:
                 logging.error(f"Failed to parse config file: {e}")
+                self.config = self.get_default_config()
+            except (ValueError, TypeError) as e:
+                logging.error(f"Configuration validation error: {e}")
                 self.config = self.get_default_config()
             except Exception as e:
                 logging.error(f"Failed to load configuration: {e}")
@@ -354,7 +386,7 @@ class ConfigManager:
                 }
             },
             'bot': {
-                'description': 'Налаштування для бота',
+                'description': 'Налашт��вання для бота',
                 'bot_token': '',
                 'bot_api_id': '',
                 'bot_api_hash': '',
@@ -422,7 +454,7 @@ class ConfigManager:
 
     def apply_limit_preset(self, preset_name: str) -> bool:
         presets = self.get_limit_presets()
-        if preset_name in presets:
+        if (preset_name in presets):
             preset = presets[preset_name]
             self.config['limits'] = preset.copy()
             self.config['limits']['preset'] = preset_name  # Store selected preset name

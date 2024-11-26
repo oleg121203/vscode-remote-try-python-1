@@ -37,13 +37,12 @@ async def cleanup(telegram_module, bot_manager, db_module):
     except Exception as e:
         logging.error(f"Error during cleanup: {e}")
 
-def main():
-    # Ініціалізація асинхронних модулів
-    await bot_manager.start()
-    await telegram_module.connect()
-    # ...existing code...
+# Removed duplicate main function
 
 def main():
+    telegram_module = None
+    bot_manager = None
+    db_module = None
     try:
         # Setup logging
         log_dir = os.path.join(os.path.dirname(__file__), 'sessions', 'logs')
@@ -93,11 +92,15 @@ def main():
         telegram_config = config_manager.get_telegram_config()
         bot_config = config_manager.get_bot_config()
 
+        api_id_raw = telegram_config.get('api_id')
+        # api_id уже проверен в ConfigManager, здесь можно напрямую использовать
+        api_id = api_id_raw
+        
         telegram_module = TelegramModule(
-            api_id=int(telegram_config.get('api_id')),
+            api_id=api_id,
             api_hash=telegram_config.get('api_hash'),
             phone_number=telegram_config.get('phone_number'),
-            bot_token=bot_config.get('bot_token')  # Will be None if not set
+            bot_token=bot_config.get('token')  # Обновлено для соответствия config.json
         )
 
         # Modify bot initialization
@@ -169,15 +172,19 @@ def main():
             loop.run_forever()
 
     except Exception as e:
-        logging.error(f"Error during application startup: {e}")
-        QMessageBox.critical(None, "Critical Error", f"An error occurred: {e}")
+        logging.error(f"Ошибка при запуске приложения: {e}")
+        QMessageBox.critical(None, "Критическая ошибка", f"Произошла ошибка: {e}")
         # Handle cleanup on error differently
         if 'loop' in locals():
             try:
                 loop.run_until_complete(cleanup(telegram_module, bot_manager, db_module))
             except Exception as cleanup_error:
-                logging.error(f"Error during emergency cleanup: {cleanup_error}")
+                logging.error(f"Ошибка при аварийной очистке: {cleanup_error}")
         sys.exit(1)
+
+async def main_async():
+    # Инициализация асинхронных модулей или других необходимых операций
+    pass
 
 if __name__ == "__main__":
     main()

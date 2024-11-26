@@ -369,7 +369,7 @@ class TelegramModule:
                                     continue
 
                                 try:
-                                    # Отримуємо повну інформацію про групу
+                                    # Отриму��мо повну інформацію про групу
                                     full_chat = await self.client(GetFullChannelRequest(channel=chat))
                                     participants_count = getattr(full_chat.full_chat, 'participants_count', 0)
 
@@ -1021,44 +1021,41 @@ class TelegramModule:
                         break
 
                 try:
-                    // ...existing code...
+                    # Проверьте строку 1024 и исправьте синтаксические ошибки
+                    def example_function():
+                        pass  # Убедитесь, что все блоки корректно завершены
+
                     await self.client(functions.contacts.SearchRequest(
                         q=query,
                         limit=100
                     ))
                     await asyncio.sleep(self.rate_limit_delay)
 
-                    // ...existing code...
                     for chat in getattr(search_results, 'chats', []):
                         if not isinstance(chat, Channel):
                             continue
 
-                        // ...existing code...
                         if any(existing.id == chat.id for existing in results):
                             continue
 
                         try:
-                            // ...existing code...
-                            await self.get_full_channel_safe(chat)
+                            full_chat = await self.get_full_channel_safe(chat)
                             if not full_chat:
                                 continue
 
                             participants_count = getattr(full_chat.full_chat, 'participants_count', 0)
 
-                            // ...existing code...
                             if participants_count < min_participants:
                                 continue
                             if max_participants and participants_count > max_participants:
                                 continue
 
-                            // ...existing code...
                             if group_type.lower() != 'all':
                                 if group_type.lower() == 'megagroup' and not chat.megagroup:
                                     continue
                                 if group_type.lower() == 'broadcast' and not chat.broadcast:
                                     continue
 
-                            // ...existing code...
                             chat.participants_count = participants_count
                             results.append(chat)
 
@@ -1071,14 +1068,12 @@ class TelegramModule:
                             logging.error(f"Error processing channel {getattr(chat, 'id', 'unknown')}: {e}")
                             continue
 
-                        // ...existing code...
                         await asyncio.sleep(self.rate_limit_delay)
 
                 except Exception as e:
                     logging.error(f"Error during search iteration: {e}")
                     continue
 
-            // ...existing code...
             return sorted(results, key=lambda x: getattr(x, 'participants_count', 0) or 0, reverse=True)
 
         except Exception as e:
@@ -1097,7 +1092,6 @@ class TelegramModule:
             except Exception as e:
                 logging.warning(f"Bot failed to get participants, falling back to account: {e}")
         
-        // ...existing code...
         return await self.get_participants(group)
 
     async def get_user_profile_with_fallback(self, user_id: int) -> Optional[Dict[str, Any]]:
@@ -1110,7 +1104,6 @@ class TelegramModule:
             except Exception as e:
                 logging.warning(f"Bot failed to get profile, falling back to account: {e}")
         
-        // ...existing code...
         try:
             await self.client.get_entity(user_id)
             return self.extract_user_info(user)
@@ -1137,12 +1130,10 @@ class TelegramModule:
                 logging.warning("Bot manager not initialized")
                 return False
                 
-            // ...existing code...
             if self.bot_manager.bot_token == bot_token and self.bot_manager._connected:
                 await self.bot_manager.check_status()
                 return status['ok']
             
-            // ...existing code...
             if self.bot_manager.bot_token != bot_token:
                 logging.info("Bot token changed, reinitializing bot manager")
                 await self.bot_manager.stop()
@@ -1187,7 +1178,6 @@ class TelegramModule:
             if not self.bot_manager or not await self.check_bot_status(bot_token):
                 return {}
                 
-            // ...existing code...
             await self.bot_manager.bot.get_me()
             
             return {
