@@ -11,18 +11,18 @@
         "phone_number": "18888412187"
     },
     "interface": {
-        "transparency": 52,
+        "transparency": 54,
         "language": "en",
-        "theme": "hacker"
+        "theme": "dark"
     },
     "bot": {
         "token": "8096147830:AAGAzABwg7hxuj-Yg1W5ndnqLl5Z3U--pLw",
         "api_id": 26292865,
         "api_hash": "c3c399387f2768f75a0e1515e420dce4",
         "session_name": "bot_session",
-        "created_at": "2024-11-25T16:35:34.678684",
+        "created_at": "2024-11-26T00:59:05.220488",
         "status": "active",
-        "last_active": "2024-11-25T23:32:02.464944",
+        "last_active": "2024-11-26T00:54:15.323796",
         "last_error": null
     },
     "general": {
