@@ -98,7 +98,6 @@ class DatabaseModule:
                 password=self.password,
                 db=self.database,
                 autocommit=True,
-                use_unicode=True,
                 charset='utf8mb4'
             )
             

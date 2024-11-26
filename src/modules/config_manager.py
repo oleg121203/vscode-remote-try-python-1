@@ -217,7 +217,7 @@ class ConfigManager:
             logging.error(f"Failed to save initial configuration: {e}")
 
     def save_config(self):
-        """Зберігає поточну конфігур��цію до файлу атомарно."""
+        """Зберігає поточну конфігурацію до файлу атомарно."""
         # Ensure directory exists
         os.makedirs(os.path.dirname(os.path.abspath(self.config_file)), exist_ok=True)
         
@@ -317,7 +317,6 @@ class ConfigManager:
             'user': user,
             'password': password,
             'database': database,
-            'use_unicode': True,
             'charset': 'utf8mb4'
         }
 
@@ -646,7 +645,6 @@ class ConfigManager:
         """Returns monitoring configuration."""
         return self.config.get('monitoring', {})
 
-                        await cursor.execute(schema)
     def get_config(self) -> Dict[str, Any]:
         """Returns the entire configuration."""
         return self.config
@@ -669,14 +667,6 @@ class DatabaseModule:
                 async with conn.cursor() as cursor:
                     for table_name, schema in self.TABLE_SCHEMAS.items():
                         await cursor.execute(schema)
-        except Exception as e:
-            logging.error(f"Failed to ensure tables exist: {e}")
-
-if __name__ == "__main__":
-    pass
-
-if __name__ == "__main__":
-    pass
         except Exception as e:
             logging.error(f"Failed to ensure tables exist: {e}")
 

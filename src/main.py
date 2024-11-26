@@ -89,7 +89,14 @@ def main():
             db_config = config_manager.get_database_config()
             if 'port' not in db_config:
                 db_config['port'] = 3306  # Add default port if not specified
-            db_module = DatabaseModule(**db_config)
+            db_module = DatabaseModule(
+                host=db_config['host'],
+                user=db_config['user'],
+                password=db_config['password'],
+                database=db_config['database'],
+                port=db_config.get('port', 3306)
+                # Не передавайте use_unicode
+            )
             connection_status = await db_module.test_connection()
     
             if connection_status['error']:

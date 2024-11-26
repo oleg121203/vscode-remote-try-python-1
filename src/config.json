@@ -10,7 +10,6 @@
         "user": "test_user",
         "password": "test_password",
         "database": "test_db",
-        "use_unicode": true,
         "charset": "utf8mb4"
     },
     "interface": {

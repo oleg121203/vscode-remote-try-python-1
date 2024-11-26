@@ -10,7 +10,6 @@
         "user": "test_user",
         "password": "test_password",
         "database": "test_db",
-        "use_unicode": true,
         "charset": "utf8mb4"
     },
     "interface": {
@@ -74,7 +73,7 @@
         "sync_retry_limit": 3
     },
     "monitoring": {
-        "description": "Налаштування для моніторингу активності",
+        "description": "Налаштування для моніторингу акти��ності",
         "max_members_per_scan": 50,
         "bot_retry_limit": 5
     }
