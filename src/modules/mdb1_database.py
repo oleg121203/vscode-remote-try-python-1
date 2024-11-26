@@ -14,13 +14,14 @@ with open('/workspaces/vscode-remote-try-python/config.json', 'r') as config_fil
 
 print(f"Connecting to database with config: {db_config}")
 
-connection = pymysql.connect(**db_config)
-cursor = connection.cursor()
-cursor.execute("SELECT DATABASE();")
-database_name = cursor.fetchone()
-print(f"Connected to database: {database_name}")
-cursor.close()
-connection.close()
+# Remove the initial synchronous connection attempt
+# connection = pymysql.connect(**db_config)
+# cursor = connection.cursor()
+# cursor.execute("SELECT DATABASE();")
+# database_name = cursor.fetchone()
+# print(f"Connected to database: {database_name}")
+# cursor.close()
+# connection.close()
 
 
 class DatabaseModule:
@@ -305,7 +306,7 @@ class DatabaseModule:
             return None
 
     async def get_all_users(self) -> List[Dict[str, Any]]:
-        """Отримує список всіх користувачів."""
+        """Отримує с��исок всіх користувачів."""
         try:
             async with self.pool.acquire() as conn:
                 async with conn.cursor(aiomysql.DictCursor) as cur:

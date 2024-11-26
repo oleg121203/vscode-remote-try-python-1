@@ -69,6 +69,8 @@ def main():
             ]
         )
         
+        logging.debug("Logging setup complete. This is a test log message.")
+        
         # Initialize config manager and check config
         config_manager = ConfigManager()
         if not config_manager.is_config_complete():
