@@ -110,7 +110,8 @@ class TelegramModule:
             await self.client.send_code_request(self.phone_number)
             # ...existing code...
         except Exception as e:
-            # ...existing code...
+            logging.error(f"Error sending SMS code: {e}")
+            raise
 
     async def sign_in_with_code(self, code: str) -> None:
         """Sign in using the received SMS code."""
@@ -118,9 +119,11 @@ class TelegramModule:
             await self.client.sign_in(self.phone_number, code)
             # ...existing code...
         except errors.SessionPasswordNeededError:
-            # ...existing code...
+            logging.warning("Two-factor authentication required")
+            raise
         except Exception as e:
-            # ...existing code...
+            logging.error(f"Error signing in with code: {e}")
+            raise
 
     async def restart_session(self) -> None:
         """Restart the Telegram client session."""
@@ -225,7 +228,7 @@ class TelegramModule:
         """
         Асинхронно получает диалоги пользователя Telegram.
 
-        :param user: Су��ность пользователя Telegram (User, Chat или Channel).
+        :param user: Сущность пользователя Telegram (User, Chat или Channel).
         :return: Список диалогов Telegram.
         """
         try:
@@ -315,7 +318,7 @@ class TelegramModule:
                 # Базовий запит
                 search_queries.append(keyword)
                 
-                # Додаємо варіан�� з "@" якщо його немає
+                # Додаємо варіант з "@" якщо його немає
                 if not keyword.startswith('@'):
                     search_queries.append(f"@{keyword}")
                     
