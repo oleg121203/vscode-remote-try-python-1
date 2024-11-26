@@ -1,37 +1,62 @@
 # modules/gui.py
 
 from __future__ import annotations
+
+import asyncio
+import logging
 import re
 import sys
-import logging
-import asyncio
 from typing import Any, List, Optional
 
+from PyQt6.QtCore import QPoint, Qt, QTimer, pyqtSlot
+from PyQt6.QtGui import QAction, QBrush, QColor, QFont, QPainter, QPen
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QProgressBar, QListWidget, QListWidgetItem,
-    QTableWidget, QTableWidgetItem, QScrollArea, QMessageBox,
-    QLineEdit, QSlider, QComboBox, QFormLayout, QTabWidget, QDialog,
-    QGroupBox, QCheckBox, QMenu, QInputDialog, QAbstractItemView
+    QAbstractItemView,
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMainWindow,
+    QMenu,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QSlider,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtCore import Qt, QPoint, QTimer, pyqtSlot
-from PyQt6.QtGui import QColor, QBrush, QFont, QPainter, QPen, QAction
 from qasync import QEventLoop, asyncSlot
-
 from telethon import errors
 from telethon.tl.types import (
-    Channel, UserStatusOffline, UserStatusOnline, UserStatusRecently,
-    UserStatusLastMonth, UserStatusLastWeek
+    Channel,
+    UserStatusLastMonth,
+    UserStatusLastWeek,
+    UserStatusOffline,
+    UserStatusOnline,
+    UserStatusRecently,
 )
+
+from modules.bot_manager import BotManager
+from modules.config_manager import ConfigManager
+from modules.file_processor import FileProcessor
+from modules.mdb1_database import DatabaseModule
+from modules.mt1_telegram import TelegramModule
+from modules.themes import get_complete_dialog_style, themes
 
 # Replace relative imports with absolute ones
 from modules.translations import translations
-from modules.themes import themes, get_complete_dialog_style
-from modules.mdb1_database import DatabaseModule
-from modules.mt1_telegram import TelegramModule 
-from modules.config_manager import ConfigManager
-from modules.file_processor import FileProcessor
-from modules.bot_manager import BotManager
 
 # Set initial language and theme
 current_language = 'uk'  # Default language
@@ -360,7 +385,7 @@ class ConfigGUI(QDialog):
         # Add limits slider
         self.limits_slider = QSlider(Qt.Orientation.Horizontal)
         self.limits_slider.setMinimum(0)
-        self.limits_slider.setMaximum(2)
+        self.limits_slider.setMaximum(3)  # Changed from 2 to 3
         self.limits_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.limits_slider.setTickInterval(1)
         self.limits_slider.valueChanged.connect(self.update_limits_label)
@@ -503,7 +528,7 @@ class ConfigGUI(QDialog):
         self.limits_label = QLabel(self.translate('limits_level'))
         self.limits_slider = QSlider(Qt.Orientation.Horizontal)
         self.limits_slider.setMinimum(0)
-        self.limits_slider.setMaximum(2)
+        self.limits_slider.setMaximum(3)  # Changed from 2 to 3
         self.limits_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.limits_slider.setTickInterval(1)
         self.limits_slider.valueChanged.connect(self.update_limits_label)
@@ -553,23 +578,35 @@ class ConfigGUI(QDialog):
         self.tabs.addTab(self.bot_tab, self.translate('bot_settings'))
 
     def update_limits_label(self, value):
-        """Update the label showing current limits preset details"""
+        """Update limits label with 4 load level descriptions"""
         presets = {
-            0: ('minimum', 'Minimum (Safe Mode)'),
-            1: ('standard', 'Standard (Default)'),
-            2: ('maximum', 'Maximum (Advanced)')
+            0: ('minimum', 'Мінімальний (Безпечний режим)'),
+            1: ('standard', 'Стандартний (Збалансований)'), 
+            2: ('maximum', 'Максимальний (Розширений)'),
+            3: ('unlimited', 'Безлімітний (Необмежений)')
         }
+
         preset_name, display_name = presets[value]
         preset_info = self.config_manager.get_limit_presets()[preset_name]
-        
-        info_text = f"""
+
+        if preset_name == 'unlimited':
+            info_text = f"""
+{display_name}
+• Безлімітні запити в годину
+• Авто-регулювання затримки
+• 4 рівні навантаження (0.25, 0.5, 0.75, 1.0)
+• Базова затримка: 2с
+• Максимальна затримка: 10с
+            """.strip()
+        else:
+            info_text = f"""
 {display_name}
 • Max Accounts: {preset_info['max_accounts']}
 • Max Groups per Account: {preset_info['max_groups_per_account']}
 • Max Messages per Day: {preset_info['max_messages_per_day']}
 • Delay: {preset_info['delay_min']}-{preset_info['delay_max']}s
-        """.strip()
-        
+            """.strip()
+
         self.limits_value_label.setText(info_text)
 
     def apply_theme(self):
@@ -696,8 +733,13 @@ class ConfigGUI(QDialog):
         # Save interface settings without showing message
         self.save_interface_settings()  
         
-        # Save limits preset
-        preset_map = {0: 'minimum', 1: 'standard', 2: 'maximum'}
+        # Save limits preset with unlimited mode support
+        preset_map = {
+            0: 'minimum', 
+            1: 'standard',
+            2: 'maximum',
+            3: 'unlimited'  # Add unlimited preset option
+        }
         selected_preset = preset_map[self.limits_slider.value()]
         self.config_manager.apply_limit_preset(selected_preset)
         
@@ -806,11 +848,13 @@ class TrafficLightWidget(QWidget):
         self.setFixedSize(20, 20)
 
     def set_state(self, state):
-        """Set the state of the traffic light safely"""
+        """Set the state of the traffic light safely with logging."""
         if not self._deleted and not self.isHidden():
             try:
+                old_state = self._state
                 self._state = state
                 self.update()
+                logging.debug(f"Traffic light state changed from {old_state} to {state}")
             except RuntimeError:
                 self._deleted = True
                 logging.debug("Widget already deleted, ignoring update")
@@ -1696,7 +1740,7 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def pause_groups_process(self):
-        """Призупиняє або відновлює процес пошуку груп."""
+        """Призупиняє або відновл��є процес пошуку груп."""
         self.is_paused_groups = not self.is_paused_groups
         self.pause_button_groups.setText(
             self.translate('resume') if self.is_paused_groups else self.translate('pause')
@@ -2237,6 +2281,30 @@ class MainWindow(QMainWindow):
                     self,
                     self.translate('bot_status'),
                     status_text
+                )
+                
+                # Update bot indicator
+                self.bot_connected = True
+                self.bot_light.set_state("green")
+            else:
+                QMessageBox.warning(
+                    self,
+                    self.translate('warning'),
+                    self.translate('bot_not_responding')
+                )
+                self.bot_connected = False
+                self.bot_light.set_state("red")
+
+        except Exception as e:
+            logging.error(f"Error checking bot status: {e}")
+            QMessageBox.critical(
+                self,
+                self.translate('error'),
+                f"{self.translate('bot_check_error')}: {str(e)}"
+            )
+                    status_text
+            self.bot_connected = False
+            self.bot_light.set_state("red")
                 )
                 
                 # Update bot indicator

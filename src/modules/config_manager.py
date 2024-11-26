@@ -394,7 +394,7 @@ class ConfigManager:
                 'delay_max': 7
             },
             'standard': {
-                'description': 'Balanced limits for regular usage',
+                'description': 'Balanced limits for regular usage', 
                 'max_accounts': 5,
                 'max_groups_per_account': 20,
                 'max_messages_per_day': 150,
@@ -408,6 +408,15 @@ class ConfigManager:
                 'max_messages_per_day': 200,
                 'delay_min': 1,
                 'delay_max': 3
+            },
+            'unlimited': {
+                'description': 'Unlimited requests with smart delays',
+                'max_accounts': float('inf'),
+                'max_groups_per_account': float('inf'),
+                'max_messages_per_day': float('inf'),
+                'delay_min': 2,
+                'delay_max': 10,
+                'requests_per_hour': float('inf')
             }
         }
 
