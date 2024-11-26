@@ -50,17 +50,23 @@ class BotManager:
     async def check_status(self) -> Dict[str, Any]:
         """Check bot status and connectivity."""
         try:
-            if not self._connected:
-                if self.config_manager:
-                    self.config_manager.update_bot_status('disconnected')
+            if not self._connected or not self.bot:
+                logging.warning("Bot is not connected")
                 return {
                     'ok': False,
                     'status': 'disconnected',
                     'details': 'Bot is not connected'
                 }
 
-            me = await self.bot.get_me()
-            if me and me.bot:
+            try:
+                # Проверяем реальное подключение
+                if not self.bot.is_connected():
+                    await self.bot.connect()
+                
+                me = await self.bot.get_me()
+                if not me or not me.bot:
+                    raise Exception("Invalid bot account")
+
                 status = {
                     'ok': True,
                     'status': 'active',
@@ -70,24 +76,27 @@ class BotManager:
                     'is_bot': True
                 }
 
+                # Обновляем статус в конфиге только при успешной проверке
                 if self.config_manager:
                     self.config_manager.update_bot_status('active')
 
                 return status
-            else:
+
+            except Exception as e:
+                logging.error(f"Bot connection check failed: {e}")
                 if self.config_manager:
-                    self.config_manager.update_bot_status('error', 'Invalid bot account')
+                    self.config_manager.update_bot_status('error', str(e))
                 return {
                     'ok': False,
                     'status': 'error',
-                    'details': 'Invalid bot account'
+                    'details': str(e)
                 }
 
         except Exception as e:
-            error_msg = str(e)
+            error_msg = f"Bot status check failed: {str(e)}"
+            logging.error(error_msg)
             if self.config_manager:
                 self.config_manager.update_bot_status('error', error_msg)
-            
             return {
                 'ok': False,
                 'status': 'error',

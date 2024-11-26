@@ -1488,7 +1488,7 @@ class MainWindow(QMainWindow):
         return translations[current_language].get(key, key)
 
     def apply_theme(self):
-        """Застосовує поточну тему до головного вікна."""
+        """Застос��вує поточну тему до головного вікна."""
         theme = themes[current_theme]
         background_color = theme['background_color']
         text_color = theme['text_color']

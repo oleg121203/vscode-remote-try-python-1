@@ -1094,28 +1094,35 @@ class TelegramModule:
         """Check if bot is active and responsive."""
         try:
             if not self.bot_manager:
+                logging.warning("Bot manager not initialized")
                 return False
                 
-            # Update bot token if changed
+            # Если токен изменился, пересоздаем менеджера бота
             if self.bot_manager.bot_token != bot_token:
+                logging.info("Bot token changed, reinitializing bot manager")
                 await self.bot_manager.stop()
                 self.bot_manager = BotManager(
                     bot_token=bot_token,
                     api_id=self.api_id,
                     api_hash=self.api_hash
                 )
+                self.bot_manager.set_config_manager(self.config_manager)
             
-            # Start bot if not connected
+            # Проверяем подключение
             if not self.bot_manager._connected:
+                logging.info("Connecting bot...")
                 await self.bot_manager.start()
                 
-            # Get bot info to verify it's really connected
-            me = await self.bot_manager.bot.get_me()
-            if me and me.bot:
-                if self.config_manager:
-                    self.config_manager.update_bot_status('active')
-                return True
-            return False
+            # Проверяем статус
+            status = await self.bot_manager.check_status()
+            is_connected = status['ok']
+            
+            if is_connected:
+                logging.info("Bot connection check successful")
+            else:
+                logging.warning(f"Bot connection check failed: {status.get('details', 'Unknown error')}")
+                
+            return is_connected
             
         except Exception as e:
             logging.error(f"Error checking bot status: {e}")
