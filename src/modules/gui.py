@@ -1740,7 +1740,7 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def pause_groups_process(self):
-        """Призупиняє або відновл��є процес пошуку груп."""
+        """Призупиняє або відновлює процес пошуку груп."""
         self.is_paused_groups = not self.is_paused_groups
         self.pause_button_groups.setText(
             self.translate('resume') if self.is_paused_groups else self.translate('pause')
@@ -2281,30 +2281,6 @@ class MainWindow(QMainWindow):
                     self,
                     self.translate('bot_status'),
                     status_text
-                )
-                
-                # Update bot indicator
-                self.bot_connected = True
-                self.bot_light.set_state("green")
-            else:
-                QMessageBox.warning(
-                    self,
-                    self.translate('warning'),
-                    self.translate('bot_not_responding')
-                )
-                self.bot_connected = False
-                self.bot_light.set_state("red")
-
-        except Exception as e:
-            logging.error(f"Error checking bot status: {e}")
-            QMessageBox.critical(
-                self,
-                self.translate('error'),
-                f"{self.translate('bot_check_error')}: {str(e)}"
-            )
-                    status_text
-            self.bot_connected = False
-            self.bot_light.set_state("red")
                 )
                 
                 # Update bot indicator

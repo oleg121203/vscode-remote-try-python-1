@@ -20,10 +20,10 @@
         "api_id": 26292865,
         "api_hash": "c3c399387f2768f75a0e1515e420dce4",
         "session_name": "bot_session",
-        "created_at": "2024-11-26T02:07:09.526184",
-        "status": "active",
-        "last_active": "2024-11-26T02:06:54.353617",
-        "last_error": null
+        "created_at": "2024-11-26T02:24:16.216172",
+        "status": "error",
+        "last_active": null,
+        "last_error": "Connection failed"
     },
     "general": {
         "description": "Загальна конфігурація для роботи акаунтів і ботів",
