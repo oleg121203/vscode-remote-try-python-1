@@ -104,6 +104,30 @@ class TelegramModule:
             logging.error(f"Unknown error during Telegram sign-in: {e}")
             raise e
 
+    async def sign_in_via_sms(self) -> None:
+        """Initiate sign-in process via SMS."""
+        try:
+            await self.client.send_code_request(self.phone_number)
+            # ...existing code...
+        except Exception as e:
+            # ...existing code...
+
+    async def sign_in_with_code(self, code: str) -> None:
+        """Sign in using the received SMS code."""
+        try:
+            await self.client.sign_in(self.phone_number, code)
+            # ...existing code...
+        except errors.SessionPasswordNeededError:
+            # ...existing code...
+        except Exception as e:
+            # ...existing code...
+
+    async def restart_session(self) -> None:
+        """Restart the Telegram client session."""
+        await self.disconnect()
+        await self.connect()
+        # ...existing code...
+
     async def disconnect(self) -> None:
         """Safely disconnect from Telegram and cleanup resources."""
         try:
@@ -201,7 +225,7 @@ class TelegramModule:
         """
         Асинхронно получает диалоги пользователя Telegram.
 
-        :param user: Сущность пользователя Telegram (User, Chat или Channel).
+        :param user: Су��ность пользователя Telegram (User, Chat или Channel).
         :return: Список диалогов Telegram.
         """
         try:
@@ -291,7 +315,7 @@ class TelegramModule:
                 # Базовий запит
                 search_queries.append(keyword)
                 
-                # Додаємо варіант з "@" якщо його немає
+                # Додаємо варіан�� з "@" якщо його немає
                 if not keyword.startswith('@'):
                     search_queries.append(f"@{keyword}")
                     

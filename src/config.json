@@ -23,7 +23,8 @@
         "created_at": "2024-11-26T02:29:32.307819",
         "status": "active",
         "last_active": "2024-11-26T02:46:47.729347",
-        "last_error": null
+        "last_error": null,
+        "session_status": "inactive"
     },
     "general": {
         "description": "Загальна конфігурація для роботи акаунтів і ботів",

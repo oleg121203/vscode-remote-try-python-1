@@ -254,6 +254,21 @@ class AuthDialog(QDialog):
 
         return await future
 
+    def init_ui(self):
+        # ...existing code...
+        self.sms_input = QLineEdit()
+        self.sms_input.setPlaceholderText("Введите SMS-код")
+        self.sms_button = QPushButton("Подтвердить")
+        self.sms_button.clicked.connect(self.submit_sms_code)
+        layout.addWidget(self.sms_input)
+        layout.addWidget(self.sms_button)
+        # ...existing code...
+
+    def submit_sms_code(self):
+        code = self.sms_input.text()
+        asyncio.create_task(self.parent().telegram_module.sign_in_with_code(code))
+        self.close()
+
 
 class ConfigGUI(QDialog):
     def __init__(self, config_manager, parent=None):
@@ -2317,3 +2332,12 @@ class MainWindow(QMainWindow):
             )
             self.bot_connected = False
             self.bot_light.set_state("red")
+
+    def setup_authentication(self):
+        """Setup SMS authentication window."""
+        self.auth_dialog = AuthDialog(self)
+        self.auth_dialog.show()
+
+    def restart_session(self):
+        """Handle session restart."""
+        asyncio.create_task(self.telegram_module.restart_session())

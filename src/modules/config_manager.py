@@ -588,6 +588,11 @@ class ConfigManager:
         """Returns the entire configuration."""
         return self.config
 
+    def update_session_status(self, status: str) -> None:
+        """Update session status in config."""
+        self.config['bot']['session_status'] = status
+        self.save_config()
+
 class DatabaseModule:
     # ...existing code...
 

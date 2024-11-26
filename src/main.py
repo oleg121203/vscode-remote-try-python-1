@@ -154,6 +154,7 @@ def main():
             tg_connected=False,
             config_manager=config_manager
         )
+        main_window.setup_authentication()
         main_window.show()
 
         # Запуск циклу подій
