@@ -81,8 +81,10 @@ def main():
         async def init_modules():
             nonlocal telegram_module, bot_manager, db_module
             
-            # Initialize database first
+            # Initialize database first with explicit port
             db_config = config_manager.get_database_config()
+            if 'port' not in db_config:
+                db_config['port'] = 3306  # Add default port if not specified
             db_module = DatabaseModule(**db_config)
             await db_module.connect()
             

@@ -74,7 +74,7 @@
         "sync_retry_limit": 3
     },
     "monitoring": {
-        "description": "Налаштування для моніторингу активност��",
+        "description": "Налаштування для моніторингу активності",
         "max_members_per_scan": 50,
         "bot_retry_limit": 5
     }

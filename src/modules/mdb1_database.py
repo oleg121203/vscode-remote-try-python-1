@@ -90,10 +90,13 @@ class DatabaseModule:
             
             self.pool = await aiomysql.create_pool(
                 host=self.host,
+                port=3306,  # Explicitly set MySQL port
                 user=self.user,
                 password=self.password,
                 db=self.database,
-                autocommit=True
+                autocommit=True,
+                use_unicode=True,
+                charset='utf8mb4'
             )
             self._is_closing = False
             logging.info("Connected to the database.")
@@ -306,7 +309,7 @@ class DatabaseModule:
             return None
 
     async def get_all_users(self) -> List[Dict[str, Any]]:
-        """Отримує с��исок всіх користувачів."""
+        """О��римує список всіх користувачів."""
         try:
             async with self.pool.acquire() as conn:
                 async with conn.cursor(aiomysql.DictCursor) as cur:
