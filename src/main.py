@@ -103,6 +103,9 @@ def main():
             bot_token=bot_config.get('token')  # Обновлено для соответствия config.json
         )
 
+        # Подключение к базе данных
+        loop.run_until_complete(db_module.connect())
+
         # Modify bot initialization
         bot_manager = None
         if bot_config.get('token'):
@@ -166,7 +169,7 @@ def main():
         main_window.setup_authentication()
         main_window.show()
 
-        # Запуск ц��клу подій
+        # Запуск циклу подій
         with loop:
             loop.run_until_complete(main_async())
             loop.run_forever()

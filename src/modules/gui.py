@@ -767,8 +767,7 @@ class ConfigGUI(QDialog):
             try:
                 bot_api_id = int(bot_api_id) if bot_api_id else None
             except ValueError:
-                QMessageBox.warning(self, self.translate('error'), "Bot API ID must be a number")
-                return
+                bot_api_id = None  # Allow saving without API ID
                 
             self.config_manager.set_bot_config(
                 token=bot_token,
@@ -1208,7 +1207,7 @@ class MainWindow(QMainWindow):
         self.file_processor = FileProcessor()
         self.setAcceptDrops(True)  # Enable file drag and drop
 
-        # Додайте ліч��льник акаунтів
+        # Додайте лічильник акаунтів
         self.accounts_count = 0
 
         # Add bot connection state

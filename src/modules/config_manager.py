@@ -217,7 +217,7 @@ class ConfigManager:
             logging.error(f"Failed to save initial configuration: {e}")
 
     def save_config(self):
-        """Зберігає поточну конфігурацію до файлу атомарно."""
+        """Зберігає поточну конфігур��цію до файлу атомарно."""
         # Ensure directory exists
         os.makedirs(os.path.dirname(os.path.abspath(self.config_file)), exist_ok=True)
         
@@ -386,7 +386,7 @@ class ConfigManager:
                 }
             },
             'bot': {
-                'description': 'Налашт��вання для бота',
+                'description': 'Налаштування для бота',
                 'bot_token': '',
                 'bot_api_id': '',
                 'bot_api_hash': '',
@@ -549,7 +549,7 @@ class ConfigManager:
 
         return bot_config
 
-    def set_bot_config(self, token: str, api_id: str, api_hash: str):
+    def set_bot_config(self, token: str, api_id: Optional[str] = None, api_hash: str = ''):
         """Sets bot configuration."""
         if 'bot' not in self.config:
             self.config['bot'] = {}

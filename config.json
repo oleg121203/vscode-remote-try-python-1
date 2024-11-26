@@ -1,8 +1,8 @@
 {
     "telegram": {
-        "api_id": "",
-        "api_hash": "",
-        "phone_number": ""
+        "api_id": 26292865,
+        "api_hash": "c3c399387f2768f75a0e1515e420dce4",
+        "phone_number": "18888412187"
     },
     "database": {
         "host": "127.0.0.1",

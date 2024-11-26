@@ -75,7 +75,7 @@ class DatabaseModule:
             logging.info("Connected to the database.")
         except Exception as e:
             logging.error(f"Failed to connect to the database: {e}")
-            raise
+            self.pool = None
 
     async def disconnect(self):
         """Закриває пул з'єднань з базою даних."""
@@ -85,15 +85,14 @@ class DatabaseModule:
             logging.info("Disconnected from the database.")
 
     async def is_connected(self) -> bool:
-        """Перевіряє, чи є підключення до бази даних."""
+        """Перевіряє, чи є пі��ключення до бази даних."""
+        if not self.pool:
+            return False
         try:
-            if self.pool is None:
-                await self.connect()
             async with self.pool.acquire() as conn:
                 async with conn.cursor() as cur:
                     await cur.execute("SELECT 1")
-                    result = await cur.fetchone()
-                    return result is not None
+            return True
         except Exception as e:
             logging.error(f"Database connection check failed: {e}")
             return False
@@ -118,7 +117,8 @@ class DatabaseModule:
     async def ensure_tables_exist(self):
         """Creates database tables if they don't exist, avoiding warnings."""
         if not self.pool:
-            raise ConnectionError("Database connection not established")
+            logging.error("Database connection is not established.")
+            return
             
         try:
             async with self.pool.acquire() as conn:
@@ -426,4 +426,4 @@ class DatabaseModule:
             logging.error(f"Failed to optimize tables: {e}")
             return False
 
-    # Додайте інші методи, які можуть бути необхідні для вашого додатку
+    # Додайте інші методи, які можуть бути необхідні для ваш��го додатку
