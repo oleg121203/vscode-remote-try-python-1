@@ -6,9 +6,12 @@
     },
     "database": {
         "host": "172.17.0.1",
+        "port": 3306,
         "user": "test_user",
         "password": "test_password",
-        "database": "test_db"
+        "database": "test_db",
+        "use_unicode": true,
+        "charset": "utf8mb4"
     },
     "interface": {
         "transparency": 100,
@@ -71,7 +74,7 @@
         "sync_retry_limit": 3
     },
     "monitoring": {
-        "description": "Налаштування для моніторингу активності",
+        "description": "Налаштування для моніторингу активност��",
         "max_members_per_scan": 50,
         "bot_retry_limit": 5
     }
