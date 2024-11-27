@@ -47,13 +47,19 @@ python3 -m pip install -r requirements.txt
 # Configure Ollama
 echo "Waiting for Ollama service..."
 for i in {1..30}; do
-    if curl -s http://172.17.0.1:11435/api/health >/dev/null; then
+    if curl -s http://172.17.0.1:11434/api/health >/dev/null; then
         echo "Ollama service is ready"
         break
     fi
     echo "Attempt $i: Ollama service not ready, waiting..."
     sleep 2
 done
+
+# Install Ollama models
+echo "Installing Ollama models..."
+ollama pull deepseek-coder-v2:latest
+ollama pull nomic-embed-text:latest 
+ollama pull qwen2.5-coder:7b
 
 # Configure git
 git config --global user.email "oleg12203@gmail.com"
