@@ -100,7 +100,11 @@
                 "Continue.continue",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",
                 "GitHub.vscode-pull-request-github",
-                "ms-azuretools.vscode-docker"
+                "ms-azuretools.vscode-docker",
+                "ms-mssql.mssql",
+                "DavidAnson.vscode-markdownlint",
+                "mtxr.sqltools",
+                "donjayamanne.githistory"
             ]
         }
     },
