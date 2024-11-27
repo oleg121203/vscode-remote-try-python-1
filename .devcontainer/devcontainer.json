@@ -79,7 +79,7 @@
                 "mypy.enabled": true,
                 "mypy.runUsingActiveInterpreter": true,
                 "mypy.args": [
-                    "--strict"  // Строгий режим проверки типов
+                    "--strict"  // ��трогий режим проверки типов
                 ]
             },
             "extensions": [
@@ -115,7 +115,7 @@
     "forwardPorts": [
         5901,
         6080,
-        11435
+         11434  // Исправленный порт Ollama
     ],
     "postStartCommand": "bash .devcontainer/start-vnc.sh",
     "remoteEnv": {
@@ -126,11 +126,12 @@
         "TEMP": "/tmp",
         "TMP": "/tmp",
         "OLAMO_HOST": "172.17.0.1",
-        "OLAMO_PORT": "11435",
+        "OLAMO_PORT": "11434",  // Исправленный порт
         "VNC_PASSWORD": "${localEnv:VNC_PASSWORD:password}"  // Используем переменную окружения для пароля VNC
     },
     "runArgs": [
         "--shm-size=1g",
-        "--add-host=host.docker.internal:172.17.0.1"
+        "--add-host=host.docker.internal:172.17.0.1",
+        "--network=host"  // Добавляем для лучшей сетевой доступности
     ]
 }

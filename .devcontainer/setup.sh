@@ -44,6 +44,17 @@ echo 'export PATH="/home/vscode/.local/bin:$PATH"' >> ~/.bashrc
 python3 -m pip install --upgrade pip wheel setuptools
 python3 -m pip install -r requirements.txt
 
+# Configure Ollama
+echo "Waiting for Ollama service..."
+for i in {1..30}; do
+    if curl -s http://172.17.0.1:11434/api/health >/dev/null; then
+        echo "Ollama service is ready"
+        break
+    fi
+    echo "Attempt $i: Ollama service not ready, waiting..."
+    sleep 2
+done
+
 # Configure git
 git config --global user.email "oleg12203@gmail.com"
 git config --global user.name "Oleg Kizyma"
