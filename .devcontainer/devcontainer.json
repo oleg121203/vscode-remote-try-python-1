@@ -97,7 +97,9 @@
                 "ms-python.flake8",
                 "ms-python.mypy-type-checker",
                 "ms-python.docformatter",
-                "Continue.continue"
+                "Continue.continue",
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
+                "GitHub.vscode-pull-request-github"
             ]
         }
     },
@@ -119,6 +121,7 @@
         "TMP": "/tmp"
     },
     "runArgs": [
-        "--shm-size=1g"
+        "--shm-size=1g",
+        "--add-host=host.docker.internal:172.17.0.1"
     ]
 }
