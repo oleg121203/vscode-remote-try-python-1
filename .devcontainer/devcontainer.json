@@ -99,7 +99,8 @@
                 "ms-python.docformatter",
                 "Continue.continue",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",
-                "GitHub.vscode-pull-request-github"
+                "GitHub.vscode-pull-request-github",
+                "ms-azuretools.vscode-docker"
             ]
         }
     },
@@ -109,7 +110,8 @@
     ],
     "forwardPorts": [
         5901,
-        6080
+        6080,
+        11435
     ],
     "postStartCommand": "mkdir -p ~/.vnc && echo 'password' | vncpasswd -f > ~/.vnc/passwd && chmod 600 ~/.vnc/passwd && mkdir -p /tmp/runtime-vscode && sudo chmod 700 /tmp/runtime-vscode && vncserver :1 -geometry 1920x1080 -depth 24 -localhost no && websockify -D --web=/usr/share/novnc/ 6080 localhost:5901 && sleep 2",
     "remoteEnv": {
