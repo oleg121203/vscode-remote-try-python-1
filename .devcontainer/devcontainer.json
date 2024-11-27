@@ -96,7 +96,8 @@
                 "ms-python.isort",
                 "ms-python.flake8",
                 "ms-python.mypy-type-checker",
-                "ms-python.docformatter"  // Добавлено расширение для docformatter
+                "ms-python.docformatter",
+                "Continue.continue"
             ]
         }
     },
