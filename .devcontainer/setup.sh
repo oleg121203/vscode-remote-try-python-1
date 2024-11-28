@@ -7,7 +7,8 @@ mkdir -p .devcontainer/temp
 # Install system packages
 sudo apt-get update
 sudo apt-get install -y --no-install-recommends \
-    default-mysql-client \
+    xfce4 \
+    xfce4-terminal \
     tigervnc-standalone-server \
     tigervnc-common \
     tigervnc-tools \
@@ -34,6 +35,15 @@ sudo apt-get install -y --no-install-recommends \
     libqt6widgets6 \
     libqt6core6 \
     libqt6dbus6
+
+# Setup VNC config
+mkdir -p ~/.vnc
+cat > ~/.vnc/xstartup << EOF
+#!/bin/bash
+xrdb $HOME/.Xresources
+startxfce4 &
+EOF
+chmod +x ~/.vnc/xstartup
 
 # Cleanup
 sudo apt-get clean
