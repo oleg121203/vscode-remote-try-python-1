@@ -6,7 +6,7 @@
             "version": "latest"
         }
     },
-    "postCreateCommand": "curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs && bash .devcontainer/setup.sh && ollama pull deepseek-coder-v2:latest nomic-embed-text:latest qwen2.5-coder:7b qwen2.5-coder:1.5b llama3.1:latest",
+    "postCreateCommand": "curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs && curl -LO \"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\" && sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && rm kubectl && bash .devcontainer/setup.sh && ollama pull deepseek-coder-v2:latest nomic-embed-text:latest qwen2.5-coder:7b qwen2.5-coder:1.5b llama3.1:latest",
     "customizations": {
         "vscode": {
             "settings": {
@@ -104,7 +104,20 @@
                 
                 "debugging.autoExpandLazyVariables": true,
                 "sonarlint.pathToNodeExecutable": "/usr/local/bin/node",
-                "sonarlint.node.minVersion": "18.18.0"
+                "sonarlint.node.minVersion": "18.18.0",
+                "vs-kubernetes": {
+                    "vs-kubernetes.kubectl-path": "/usr/local/bin/kubectl",
+                    "vs-kubernetes.helm-path": "/usr/local/bin/helm",
+                    "vs-kubernetes.minikube-path": "/usr/local/bin/minikube"
+                },
+                "continue.apiKey": "${localEnv:CONTINUE_API_KEY}",
+                "continue.preferredLanguage": "ru-RU",
+                "continue.sites": {
+                    "ollama": {
+                        "url": "http://127.0.0.1:11434",
+                        "models": ["deepseek-coder", "qwen", "llama"]
+                    }
+                }
             },
             "extensions": [
                 "ms-python.python",
@@ -178,7 +191,7 @@
     },
     "runArgs": [
         "--shm-size=1g",
-        "--add-host=host.docker.internal:172.17.0.1",
+        "--add-host=host.docker.internal:127.0.0.1",
         "--network=host",
         "--memory=4g",
         "--cpus=2"
