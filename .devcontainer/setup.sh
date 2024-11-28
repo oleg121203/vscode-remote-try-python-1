@@ -55,12 +55,6 @@ for i in {1..30}; do
     sleep 2
 done
 
-# Install Ollama models
-echo "Installing Ollama models..."
-ollama pull deepseek-coder-v2:latest
-ollama pull nomic-embed-text:latest 
-ollama pull qwen2.5-coder:7b
-
 # Configure git
 git config --global user.email "oleg12203@gmail.com"
 git config --global user.name "Oleg Kizyma"
