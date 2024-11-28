@@ -4,6 +4,11 @@ set -e
 # Create temp directory
 mkdir -p .devcontainer/temp
 
+# Set executable permissions for all scripts in .devcontainer
+echo "Setting up script permissions..."
+chmod +x .devcontainer/*.sh
+ls -la .devcontainer/*.sh
+
 # Install system packages
 sudo apt-get update
 sudo apt-get install -y --no-install-recommends \
@@ -64,6 +69,9 @@ sudo rm -rf /var/lib/apt/lists/*
 echo 'export PATH="/home/vscode/.local/bin:$PATH"' >> ~/.bashrc
 python3 -m pip install --upgrade pip wheel setuptools
 python3 -m pip install -r requirements.txt
+
+# Проверка установки Node.js
+bash .devcontainer/verify-node.sh
 
 # Configure Ollama
 echo "Waiting for Ollama service..."
