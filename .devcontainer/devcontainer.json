@@ -123,6 +123,8 @@
                 "ms-mssql.sql-database-projects-vscode",
                 "redhat.vscode-yaml",
                 "wholroyd.jinja",
+                "cstrap.flask-snippets",
+                "wholroyd.jinja",
                 "ms-toolsai.jupyter-keymap",
                 "KevinRose.vsc-python-indent"
             ]
