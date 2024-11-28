@@ -80,7 +80,29 @@
                 "mypy.runUsingActiveInterpreter": true,
                 "mypy.args": [
                     "--strict"  // ���трогий режим проверки типов
-                ]
+                ],
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false,
+                "python.testing.nosetestsEnabled": false,
+                "python.testing.pytestArgs": ["tests"],
+                
+                "python.analysis.inlayHints.functionReturnTypes": true,
+                "python.analysis.inlayHints.variableTypes": true,
+                "python.analysis.packageIndexDepths": [
+                    {"name": "sklearn", "depth": 2},
+                    {"name": "matplotlib", "depth": 2},
+                    {"name": "scipy", "depth": 2}
+                ],
+                
+                "git.enableSmartCommit": true,
+                "git.confirmSync": false,
+                "git.autofetch": true,
+                "gitlens.codeLens.enabled": true,
+                
+                "terminal.integrated.enablePersistentSessions": true,
+                "terminal.integrated.scrollback": 5000,
+                
+                "debugging.autoExpandLazyVariables": true
             },
             "extensions": [
                 "ms-python.python",
@@ -126,7 +148,10 @@
                 "cstrap.flask-snippets",
                 "wholroyd.jinja",
                 "ms-toolsai.jupyter-keymap",
-                "KevinRose.vsc-python-indent"
+                "KevinRose.vsc-python-indent",
+                "sonarsource.sonarlint-vscode",
+                "streetsidesoftware.code-spell-checker",
+                "yzhang.markdown-all-in-one"
             ]
         }
     },
@@ -152,6 +177,8 @@
     "runArgs": [
         "--shm-size=1g",
         "--add-host=host.docker.internal:172.17.0.1",
-        "--network=host"
+        "--network=host",
+        "--memory=4g",
+        "--cpus=2"
     ]
 }
