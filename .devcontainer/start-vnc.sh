@@ -32,3 +32,8 @@ done
 
 # Wait for services to start
 sleep 2
+
+export DISPLAY=:1
+mkdir -p /tmp/runtime-vscode
+vncserver :1 -geometry 1920x1080 -depth 24 -localhost no
+websockify -D --web=/usr/share/novnc/ 6080 localhost:5901

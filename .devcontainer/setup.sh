@@ -38,12 +38,23 @@ sudo apt-get install -y --no-install-recommends \
 
 # Setup VNC config
 mkdir -p ~/.vnc
+cat > ~/.vnc/config << EOF
+geometry=1920x1080
+depth=24
+EOF
+
 cat > ~/.vnc/xstartup << EOF
-#!/bin/bash
-xrdb $HOME/.Xresources
+#!/bin/sh
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+export XKL_XMODMAP_DISABLE=1
+export XDG_CURRENT_DESKTOP="XFCE"
 startxfce4 &
 EOF
-chmod +x ~/.vnc/xstartup
+chmod 755 ~/.vnc/xstartup
+
+echo "export DISPLAY=:1" >> ~/.bashrc
+echo "export XDG_RUNTIME_DIR=/tmp/runtime-vscode" >> ~/.bashrc
 
 # Cleanup
 sudo apt-get clean
