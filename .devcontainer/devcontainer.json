@@ -6,7 +6,7 @@
             "version": "latest"
         }
     },
-    "postCreateCommand": "bash .devcontainer/setup.sh && ollama pull deepseek-coder-v2:latest nomic-embed-text:latest qwen2.5-coder:7b",
+    "postCreateCommand": "curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs && bash .devcontainer/setup.sh && ollama pull deepseek-coder-v2:latest nomic-embed-text:latest qwen2.5-coder:7b qwen2.5-coder:1.5b llama3.1:latest",
     "customizations": {
         "vscode": {
             "settings": {
@@ -79,7 +79,7 @@
                 "mypy.enabled": true,
                 "mypy.runUsingActiveInterpreter": true,
                 "mypy.args": [
-                    "--strict"  // ���трогий режим проверки типов
+                    "--strict"  // строгий режим проверки типов
                 ],
                 "python.testing.pytestEnabled": true,
                 "python.testing.unittestEnabled": false,
@@ -102,7 +102,9 @@
                 "terminal.integrated.enablePersistentSessions": true,
                 "terminal.integrated.scrollback": 5000,
                 
-                "debugging.autoExpandLazyVariables": true
+                "debugging.autoExpandLazyVariables": true,
+                "sonarlint.pathToNodeExecutable": "/usr/local/bin/node",
+                "sonarlint.node.minVersion": "18.18.0"
             },
             "extensions": [
                 "ms-python.python",
