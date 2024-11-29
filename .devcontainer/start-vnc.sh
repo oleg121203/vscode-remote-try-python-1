@@ -1,28 +1,32 @@
 #!/bin/bash
 set -e
 
+# Add error handling
+trap 'echo "Error on line $LINENO"' ERR
+
+# Ensure runtime directory exists with proper permissions
+mkdir -p /tmp/runtime-vscode
+sudo chmod 700 /tmp/runtime-vscode
+
+# Kill existing processes
+pkill -f "vncserver" || true
+pkill -f "websockify" || true
+
 # Setup VNC
 mkdir -p ~/.vnc
 echo "${VNC_PASSWORD:-password}" | vncpasswd -f > ~/.vnc/passwd
 chmod 600 ~/.vnc/passwd
 
-# Kill existing VNC sessions
-vncserver -kill :1 2>/dev/null || true
-
-# Setup runtime directory
-mkdir -p /tmp/runtime-vscode
-sudo chmod 700 /tmp/runtime-vscode
-
 # Start VNC server with specific geometry
-vncserver :1 -geometry 1920x1080 -depth 24 -localhost no
+export DISPLAY=:1
+vncserver :1 -geometry 1920x1080 -depth 24 -localhost no -SecurityTypes None
 
-# Start noVNC
-pkill -f "websockify" || true
+# Start noVNC with proper host binding
 websockify -D --web=/usr/share/novnc/ 6080 localhost:5901
 
 # Check Ollama service
 for i in {1..5}; do
-    if curl -s http://127.0.0.1:11434/api/health >/dev/null; then
+    if curl -s http://172.17.0.1:11434/api/health >/dev/null; then
         echo "Ollama service is available"
         break
     fi
@@ -30,10 +34,7 @@ for i in {1..5}; do
     sleep 2
 done
 
-# Wait for services to start
+# Wait for VNC server to fully start
 sleep 2
 
-export DISPLAY=:1
-mkdir -p /tmp/runtime-vscode
-vncserver :1 -geometry 1920x1080 -depth 24 -localhost no
-websockify -D --web=/usr/share/novnc/ 6080 localhost:5901
+echo "VNC and noVNC services started successfully"

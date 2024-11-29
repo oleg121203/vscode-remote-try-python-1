@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Add error handling
+trap 'echo "Error on line $LINENO"' ERR
+
 # Create temp directory
 mkdir -p .devcontainer/temp
 
@@ -61,6 +64,15 @@ chmod 755 ~/.vnc/xstartup
 echo "export DISPLAY=:1" >> ~/.bashrc
 echo "export XDG_RUNTIME_DIR=/tmp/runtime-vscode" >> ~/.bashrc
 
+# Update runtime directory permissions
+sudo mkdir -p /tmp/runtime-vscode
+sudo chown vscode:vscode /tmp/runtime-vscode
+sudo chmod 700 /tmp/runtime-vscode
+
+# Ensure X11 directory exists
+sudo mkdir -p /tmp/.X11-unix
+sudo chmod 1777 /tmp/.X11-unix
+
 # Cleanup
 sudo apt-get clean
 sudo rm -rf /var/lib/apt/lists/*
@@ -70,19 +82,29 @@ echo 'export PATH="/home/vscode/.local/bin:$PATH"' >> ~/.bashrc
 python3 -m pip install --upgrade pip wheel setuptools
 python3 -m pip install -r requirements.txt
 
-# Проверка установки Node.js
+# Node.js setup
+echo "Setting up Node.js..."
+if ! command -v node &> /dev/null; then
+    echo "Installing Node.js..."
+    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+    sudo apt-get install -y nodejs=18.18.0*
+fi
+
+# Create symlink if needed
+if [ ! -f "/usr/local/bin/node" ]; then
+    sudo ln -s /usr/bin/node /usr/local/bin/node
+fi
+
+# Verify Node.js installation
 bash .devcontainer/verify-node.sh
 
 # Configure Ollama
-echo "Waiting for Ollama service..."
-for i in {1..30}; do
-    if curl -s http://127.0.0.1:11434/api/health >/dev/null; then
-        echo "Ollama service is ready"
-        break
-    fi
-    echo "Attempt $i: Ollama service not ready, waiting..."
+echo "Checking Ollama service..."
+until curl -s http://172.17.0.1:11434/api/health >/dev/null; do
+    echo "Waiting for Ollama service..."
     sleep 2
 done
+echo "Ollama service is ready"
 
 # Configure git
 git config --global user.email "oleg12203@gmail.com"

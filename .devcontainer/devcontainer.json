@@ -6,7 +6,7 @@
             "version": "latest"
         }
     },
-    "postCreateCommand": "chmod +x .devcontainer/setup.sh && curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs && curl -LO \"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\" && sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && rm kubectl && bash .devcontainer/setup.sh && ollama pull deepseek-coder-v2:latest nomic-embed-text:latest qwen2.5-coder:7b qwen2.5-coder:1.5b llama3.1:latest",
+    "postCreateCommand": "chmod +x .devcontainer/setup.sh && curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs && curl -LO \"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\" && sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && rm kubectl && bash .devcontainer/setup.sh && for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do curl -X POST http://172.17.0.1:11434/api/pull -d '{\"name\":\"'$model'\"}'; done",
     "customizations": {
         "vscode": {
             "settings": {
@@ -21,7 +21,7 @@
                     "source.organizeImports": true,
                     "source.fixAll": true,
                     "source.fixAll.sortImports": true,
-                    "source.fixAll.docformatter": true  // Добавлено для docformatter
+                    "source.fixAll.docformatter": true // Добавлено для docformatter
                 },
                 "python.languageServer": "Pylance",
                 "python.analysis.autoImportCompletions": true,
@@ -74,37 +74,45 @@
                 "python.linting.flake8Enabled": true,
                 "python.linting.flake8Args": [
                     "--max-line-length=88",
-                    "--ignore=E203,W503"  // Игнорирование конфликтующих правил
+                    "--ignore=E203,W503" // Игнорирование конфликтующих правил
                 ],
                 "mypy.enabled": true,
                 "mypy.runUsingActiveInterpreter": true,
                 "mypy.args": [
-                    "--strict"  // строгий режим проверки типов
+                    "--strict" // строгий режим проверки типов
                 ],
                 "python.testing.pytestEnabled": true,
                 "python.testing.unittestEnabled": false,
                 "python.testing.nosetestsEnabled": false,
-                "python.testing.pytestArgs": ["tests"],
-                
+                "python.testing.pytestArgs": [
+                    "tests"
+                ],
                 "python.analysis.inlayHints.functionReturnTypes": true,
                 "python.analysis.inlayHints.variableTypes": true,
                 "python.analysis.packageIndexDepths": [
-                    {"name": "sklearn", "depth": 2},
-                    {"name": "matplotlib", "depth": 2},
-                    {"name": "scipy", "depth": 2}
+                    {
+                        "name": "sklearn",
+                        "depth": 2
+                    },
+                    {
+                        "name": "matplotlib",
+                        "depth": 2
+                    },
+                    {
+                        "name": "scipy",
+                        "depth": 2
+                    }
                 ],
-                
                 "git.enableSmartCommit": true,
                 "git.confirmSync": false,
                 "git.autofetch": true,
                 "gitlens.codeLens.enabled": true,
-                
                 "terminal.integrated.enablePersistentSessions": true,
                 "terminal.integrated.scrollback": 5000,
-                
                 "debugging.autoExpandLazyVariables": true,
-                "sonarlint.pathToNodeExecutable": "/usr/local/bin/node",
+                "sonarlint.pathToNodeExecutable": "/usr/bin/node",
                 "sonarlint.node.minVersion": "18.18.0",
+                "sonarlint.node.maxVersion": "18.99.99",
                 "vs-kubernetes": {
                     "vs-kubernetes.kubectl-path": "/usr/local/bin/kubectl",
                     "vs-kubernetes.helm-path": "/usr/local/bin/helm",
@@ -114,8 +122,13 @@
                 "continue.preferredLanguage": "ru-RU",
                 "continue.sites": {
                     "ollama": {
-                        "url": "http://127.0.0.1:11434",
-                        "models": ["deepseek-coder", "qwen", "llama"]
+                        "url": "http://172.17.0.1:11434",
+                        "models": [
+                            "deepseek-coder",
+                            "qwen",
+                            "llama"
+                        ]
+                    }
                 }
             },
             "extensions": [
@@ -176,7 +189,8 @@
     "forwardPorts": [
         5901,
         6080,
-        11434
+        11434,
+        43619
     ],
     "postStartCommand": "bash .devcontainer/start-vnc.sh",
     "remoteEnv": {
@@ -188,10 +202,13 @@
         "VNC_PASSWORD": "${localEnv:VNC_PASSWORD:password}"
     },
     "runArgs": [
-        "--shm-size=1g",
-        "--add-host=host.docker.internal:127.0.0.1",
+        "--shm-size=2g",
+        "--add-host=host.docker.internal:host-gateway",
         "--network=host",
-        "--memory=4g",
-        "--cpus=2"
-    ]
+        "--memory=8g",
+        "--cpus=4"
+    ],
+    "initializeCommand": {
+        "pre-create": "mkdir -p /tmp/runtime-vscode && chmod 700 /tmp/runtime-vscode"
+    }
 }
