@@ -105,7 +105,7 @@ bash .devcontainer/verify-node.sh
 
 # Configure Ollama
 echo "Checking Ollama service..."
-until curl -s http://172.17.0.1:11434/api/health >/dev/null; do
+until curl -s http://localhost:11434/api/health >/dev/null; do
     echo "Waiting for Ollama service..."
     sleep 2
 done

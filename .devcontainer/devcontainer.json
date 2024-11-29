@@ -6,7 +6,7 @@
             "version": "latest"
         }
     },
-    "postCreateCommand": "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh && for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do curl -X POST http://172.17.0.1:11434/api/pull -d '{\"name\":\"'$model'\"}'; done",
+    "postCreateCommand": "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh && for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do curl -X POST http://localhost:11434/api/pull -d '{\"name\":\"'$model'\"}'; done",
     "customizations": {
         "vscode": {
             "settings": {
@@ -79,7 +79,7 @@
                 "mypy.enabled": true,
                 "mypy.runUsingActiveInterpreter": true,
                 "mypy.args": [
-                    "--strict" // строгий режим проверки типов
+                    "--strict" // с��рогий режим проверки типов
                 ],
                 "python.testing.pytestEnabled": true,
                 "python.testing.unittestEnabled": false,
@@ -122,7 +122,7 @@
                 "continue.preferredLanguage": "ru-RU",
                 "continue.sites": {
                     "ollama": {
-                        "url": "http://172.17.0.1:11434",
+                        "url": "http://localhost:11434",
                         "models": [
                             "deepseek-coder",
                             "qwen",
@@ -130,7 +130,7 @@
                         ]
                     }
                 },
-                "continue.ollama.baseUrl": "http://172.17.0.1:11434"
+                "continue.ollama.baseUrl": "http://localhost:11434"
             },
             "extensions": [
                 "ms-python.python",
