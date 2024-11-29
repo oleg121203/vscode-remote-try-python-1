@@ -6,7 +6,7 @@
             "version": "latest"
         }
     },
-    "postCreateCommand": "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh && for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do curl -X POST http://localhost:11434/api/pull -d '{\"name\":\"'$model'\"}'; done",
+    "postCreateCommand": "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh && for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do if curl --output /dev/null --silent --head --fail http://localhost:11434/api/pull; then curl -X POST http://localhost:11434/api/pull -d '{\"name\":\"'$model'\"}'; else echo 'URL not available'; fi; done",
     "customizations": {
         "vscode": {
             "settings": {
@@ -79,7 +79,7 @@
                 "mypy.enabled": true,
                 "mypy.runUsingActiveInterpreter": true,
                 "mypy.args": [
-                    "--strict" // с��рогий режим проверки типов
+                    "--strict" // строгий режим проверки типов
                 ],
                 "python.testing.pytestEnabled": true,
                 "python.testing.unittestEnabled": false,
@@ -204,11 +204,9 @@
     },
     "runArgs": [
         "--privileged",
-        "--shm-size=2g",
         "--add-host=host.docker.internal:host-gateway",
         "--network=host",
-        "--memory=8g",
-        "--cpus=4"
+        "--security-opt=seccomp=unconfined"
     ],
     "initializeCommand": {
         "pre-create": "mkdir -p /tmp/runtime-vscode && chmod 700 /tmp/runtime-vscode"
