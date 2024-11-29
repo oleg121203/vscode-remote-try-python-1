@@ -193,7 +193,7 @@
         11434,
         43619
     ],
-    "postStartCommand": "bash .devcontainer/start-vnc.sh",
+    "postStartCommand": "sudo bash .devcontainer/start-vnc.sh",
     "remoteEnv": {
         "DISPLAY": ":1",
         "XDG_RUNTIME_DIR": "/tmp/runtime-vscode",
@@ -203,6 +203,7 @@
         "VNC_PASSWORD": "${localEnv:VNC_PASSWORD:vncpass123}"
     },
     "runArgs": [
+        "--privileged",
         "--shm-size=2g",
         "--add-host=host.docker.internal:host-gateway",
         "--network=host",
