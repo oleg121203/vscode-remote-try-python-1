@@ -1,40 +1,51 @@
 #!/bin/bash
 set -e
 
-# Add error handling
-trap 'echo "Error on line $LINENO"' ERR
-
-# Ensure runtime directory exists with proper permissions
-mkdir -p /tmp/runtime-vscode
-sudo chmod 700 /tmp/runtime-vscode
-
-# Kill existing processes
+# Cleanup previous sessions
 pkill -f "vncserver" || true
 pkill -f "websockify" || true
+rm -rf /tmp/.X*
+rm -rf ~/.Xauthority
 
-# Setup VNC
+# Setup xauth
+touch ~/.Xauthority
+xauth generate :1 . trusted
+
+# Create and configure VNC directory
 mkdir -p ~/.vnc
-echo "${VNC_PASSWORD:-password}" | vncpasswd -f > ~/.vnc/passwd
+echo "${VNC_PASSWORD:-vncpass123}" | vncpasswd -f > ~/.vnc/passwd
 chmod 600 ~/.vnc/passwd
 
-# Start VNC server with specific geometry
+# Update xstartup
+cat > ~/.vnc/xstartup << EOF
+#!/bin/bash
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+export XKL_XMODMAP_DISABLE=1
+export XDG_CURRENT_DESKTOP="XFCE"
 export DISPLAY=:1
-vncserver :1 -geometry 1920x1080 -depth 24 -localhost no -SecurityTypes None
 
-# Start noVNC with proper host binding
+# Ensure proper window manager startup
+xrdb ~/.Xresources
+openbox-session &
+startxfce4 &
+EOF
+chmod +x ~/.vnc/xstartup
+
+# Start VNC server
+vncserver :1 -geometry 1920x1080 -depth 24 -localhost no \
+    -SecurityTypes VncAuth \
+    -PasswordFile ~/.vnc/passwd \
+    -xstartup ~/.vnc/xstartup
+
+# Wait for VNC to start
+sleep 5
+
+# Start noVNC
 websockify -D --web=/usr/share/novnc/ 6080 localhost:5901
 
-# Check Ollama service
-for i in {1..5}; do
-    if curl -s http://172.17.0.1:11434/api/health >/dev/null; then
-        echo "Ollama service is available"
-        break
-    fi
-    echo "Attempt $i: Waiting for Ollama service..."
-    sleep 2
-done
+echo "VNC server started on port 5901"
+echo "noVNC interface available at http://localhost:6080"
 
-# Wait for VNC server to fully start
-sleep 2
-
-echo "VNC and noVNC services started successfully"
+# Keep the script running
+tail -f ~/.vnc/*:1.log

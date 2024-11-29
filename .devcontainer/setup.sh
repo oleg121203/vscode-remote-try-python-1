@@ -4,12 +4,17 @@ set -e
 # Add error handling
 trap 'echo "Error on line $LINENO"' ERR
 
+# Ensure X11 permissions
+sudo mkdir -p /tmp/.X11-unix
+sudo chmod 1777 /tmp/.X11-unix
+sudo chown root:root /tmp/.X11-unix
+
 # Create temp directory
 mkdir -p .devcontainer/temp
 
-# Set executable permissions for all scripts in .devcontainer
+# Set proper permissions for all scripts in .devcontainer
 echo "Setting up script permissions..."
-chmod +x .devcontainer/*.sh
+find .devcontainer -name "*.sh" -type f -exec chmod +x {} \;
 ls -la .devcontainer/*.sh
 
 # Install system packages
