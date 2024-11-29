@@ -129,7 +129,8 @@
                             "llama"
                         ]
                     }
-                }
+                },
+                "continue.ollama.baseUrl": "http://172.17.0.1:11434"
             },
             "extensions": [
                 "ms-python.python",
