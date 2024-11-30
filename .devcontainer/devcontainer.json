@@ -6,7 +6,7 @@
             "version": "latest"
         }
     },
-    "postCreateCommand": "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh && for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do if curl --output /dev/null --silent --head --fail http://localhost:11434/api/pull; then curl -X POST http://localhost:11434/api/pull -d '{\"name\":\"'$model'\"}'; else echo 'URL not available'; fi; done",
+    "postCreateCommand": "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh && for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do if curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/pull; then curl -X POST http://172.17.0.1:11434/api/pull -d '{\"name\":\"'$model'\"}'; else echo 'URL not available'; fi; done",
     "customizations": {
         "vscode": {
             "settings": {
@@ -122,7 +122,7 @@
                 "continue.preferredLanguage": "ru-RU",
                 "continue.sites": {
                     "ollama": {
-                        "url": "http://localhost:11434",
+                        "url": "http://172.17.0.1:11434",
                         "models": [
                             "deepseek-coder",
                             "qwen",
@@ -130,7 +130,7 @@
                         ]
                     }
                 },
-                "continue.ollama.baseUrl": "http://localhost:11434"
+                "continue.ollama.baseUrl": "http://172.17.0.1:11434"
             },
             "extensions": [
                 "ms-python.python",
@@ -200,7 +200,8 @@
         "PYTHONPATH": "${containerWorkspaceFolder}",
         "TEMP": "/tmp",
         "TMP": "/tmp",
-        "VNC_PASSWORD": "${localEnv:VNC_PASSWORD:vncpass123}"
+        "VNC_PASSWORD": "${localEnv:VNC_PASSWORD:vncpass123}",
+        "OLLAMA_HOST": "http://172.17.0.1:11434"
     },
     "runArgs": [
         "--privileged",
