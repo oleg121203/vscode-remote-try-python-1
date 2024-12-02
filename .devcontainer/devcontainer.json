@@ -9,7 +9,8 @@
     "postCreateCommand": {
         "setup": "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh",
         "init-dirs": "sudo mkdir -p /tmp/runtime-vscode && sudo chmod 700 /tmp/runtime-vscode && sudo mkdir -p /tmp/.X11-unix && sudo chmod 1777 /tmp/.X11-unix",
-        "pull-models": "for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do if curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/pull; then curl -X POST http://172.17.0.1:11434/api/pull -d '{\"name\":\"'$model'\"}'; else echo 'URL not available'; fi; done"
+        "pull-models": "for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do if curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/pull; then curl -X POST http://172.17.0.1:11434/api/pull -d '{\"name\":\"'$model'\"}'; else echo 'URL not available'; fi; done",
+        "check-ollama": "curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/health || echo 'Ollama is not available'"
     },
     "customizations": {
         "vscode": {
@@ -127,14 +128,20 @@
                 "continue.sites": {
                     "ollama": {
                         "url": "http://172.17.0.1:11434",
+                        "baseUrl": "http://172.17.0.1:11434",
                         "models": [
-                            "deepseek-coder",
-                            "qwen",
-                            "llama"
+                            "deepseek-coder-v2",
+                            "nomic-embed-text",
+                            "qwen2.5-coder",
+                            "llama3.1"
                         ]
                     }
                 },
-                "continue.ollama.baseUrl": "http://172.17.0.1:11434"
+                "continue.ollama": {
+                    "baseUrl": "http://172.17.0.1:11434",
+                    "origins": "*",
+                    "host": "http://172.17.0.1:11434"
+                }
             },
             "extensions": [
                 "ms-python.python",
