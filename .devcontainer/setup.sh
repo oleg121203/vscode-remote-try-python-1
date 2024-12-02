@@ -128,6 +128,11 @@ until curl -s http://172.17.0.1:11434/api/health >/dev/null; do
 done
 echo "Ollama service is ready"
 
+# Configure Ollama environment variables
+echo "export OLLAMA_API_HOST=172.17.0.1" >> ~/.bashrc
+echo "export OLLAMA_API_PORT=11434" >> ~/.bashrc
+echo "export OLLAMA_API_BASE_URL=http://172.17.0.1:11434" >> ~/.bashrc
+
 # Configure git
 git config --global user.email "oleg12203@gmail.com"
 git config --global user.name "Oleg Kizyma"
