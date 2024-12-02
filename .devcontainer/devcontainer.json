@@ -204,7 +204,7 @@
         11434,
         43619
     ],
-    "postStartCommand": "sudo bash .devcontainer/start-vnc.sh",
+    "postStartCommand": "sudo bash .devcontainer/x11vnc-manager.sh start",
     "remoteEnv": {
         "DISPLAY": ":1",
         "XDG_RUNTIME_DIR": "/tmp/runtime-vscode",
