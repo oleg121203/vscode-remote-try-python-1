@@ -1,8 +1,25 @@
 #!/bin/bash
 set -e
 
-# Add error handling
-trap 'echo "Error on line $LINENO"' ERR
+# Улучшенная обработка ошибок
+trap 'echo "Error on line $LINENO. Exit code: $?"' ERR
+
+# Создаем необходимые директории с правильными правами
+sudo mkdir -p /tmp/.X11-unix
+sudo chmod 1777 /tmp/.X11-unix
+sudo chown root:root /tmp/.X11-unix
+
+# Правильная настройка рабочей директории
+WORKSPACE_DIR="/workspaces/$(basename $PWD)"
+mkdir -p "$WORKSPACE_DIR"
+
+# Настройка прав для пользователя vscode
+sudo chown -R vscode:vscode "$WORKSPACE_DIR"
+sudo chmod -R 755 "$WORKSPACE_DIR"
+
+# Исправление путей для VS Code Server
+mkdir -p /home/vscode/.vscode-server/bin
+sudo chown -R vscode:vscode /home/vscode/.vscode-server
 
 # Ensure X11 permissions
 sudo mkdir -p /tmp/.X11-unix

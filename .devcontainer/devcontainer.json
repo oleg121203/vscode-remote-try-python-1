@@ -201,15 +201,26 @@
         "TEMP": "/tmp",
         "TMP": "/tmp",
         "VNC_PASSWORD": "${localEnv:VNC_PASSWORD:vncpass123}",
-        "OLLAMA_HOST": "http://172.17.0.1:11434"
+        "OLLAMA_HOST": "http://172.17.0.1:11434",
+        "OLLAMA_ORIGINS": "*",
+        "OLLAMA_BASE_URL": "http://172.17.0.1:11434"
     },
     "runArgs": [
         "--privileged",
         "--add-host=host.docker.internal:host-gateway",
         "--network=host",
-        "--security-opt=seccomp=unconfined"
+        "--security-opt=seccomp=unconfined",
+        "--init"
     ],
     "initializeCommand": {
-        "pre-create": "mkdir -p /tmp/runtime-vscode && chmod 700 /tmp/runtime-vscode"
+        "pre-create": [
+            "mkdir -p /tmp/runtime-vscode",
+            "chmod 700 /tmp/runtime-vscode",
+            "mkdir -p /tmp/.X11-unix",
+            "chmod 1777 /tmp/.X11-unix"
+        ]
+    },
+    "containerEnv": {
+        "SHELL": "/bin/bash"
     }
 }

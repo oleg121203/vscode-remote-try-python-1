@@ -20,5 +20,12 @@
         "editor.defaultFormatter": "vscode.json-language-features"
     },
     "ollama.serverUrl": "http://172.17.0.1:11434",
-    "ollama.model": "llama3.1:8b"
+    "ollama.model": "llama3.1:8b",
+    "continue.sites": {
+        "ollama": {
+            "url": "http://172.17.0.1:11434",
+            "baseUrl": "http://172.17.0.1:11434"
+        }
+    },
+    "continue.ollama.baseUrl": "http://172.17.0.1:11434"
 }
