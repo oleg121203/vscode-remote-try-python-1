@@ -77,9 +77,15 @@ sudo apt-get clean
 sudo rm -rf /var/lib/apt/lists/*
 
 # Setup Python environment
-python3 -m pip install --upgrade pip wheel setuptools
+PYTHON_VERSION="3.11"
+if ! command -v python$PYTHON_VERSION &> /dev/null; then
+    sudo apt-get install -y python$PYTHON_VERSION
+fi
+
+# Use specific Python version
+python$PYTHON_VERSION -m pip install --upgrade pip wheel setuptools
 if [ -f "requirements.txt" ]; then
-    python3 -m pip install -r requirements.txt
+    python$PYTHON_VERSION -m pip install -r requirements.txt
 fi
 
 # Node.js setup
@@ -100,14 +106,19 @@ bash .devcontainer/verify-node.sh
 
 # Function to determine Ollama IP address
 get_ollama_ip() {
-    local possible_ips=("172.17.0.1" "127.0.0.1" "host.docker.internal")
+    # Используем только 172.17.0.1, так как другие адреса не работают
+    local ip="172.17.0.1"
     
-    for ip in "${possible_ips[@]}"; do
-        if curl --output /dev/null --silent --head --fail "http://${ip}:11434/api/status"; then
-            echo "${ip}"
-            return 0
-        fi
-    done
+    # Проверяем доступность сервиса
+    local response=$(curl -s -w "%{http_code}" "http://${ip}:11434/api/status")
+    local status=$?
+    
+    if [ $status -eq 0 ]; then
+        # Сервис отвечает (даже если 404)
+        echo "${ip}"
+        return 0
+    fi
+    
     return 1
 }
 
@@ -115,40 +126,20 @@ get_ollama_ip() {
 wait_for_ollama() {
     local max_attempts=30
     local attempt=1
+    local wait_time=10
     
     echo "Determining Ollama service IP address..."
     local ollama_ip=$(get_ollama_ip)
-    if [ $? -ne 0 ]; then
+    if [ -z "${ollama_ip}" ]; then
         echo "Could not determine Ollama IP address"
         return 1
     fi
-    echo "Found Ollama service at: ${ollama_ip}"
     
-    echo "Waiting for Ollama service to be ready..."
-    while [ $attempt -le $max_attempts ]; do
-        if curl --output /dev/null --silent --head --fail "http://${ollama_ip}:11434/api/status"; then
-            echo "Ollama service is ready"
-            export OLLAMA_HOST="${ollama_ip}"
-            return 0
-        fi
-        echo "Attempt $attempt/$max_attempts: Waiting for Ollama to start..."
-        sleep 5
-        attempt=$((attempt + 1))
-    done
-    echo "Ollama service failed to start after $max_attempts attempts"
-    return 1
-}
-
-# Function to pull model
-pull_model() {
-    local model=$1
-    echo "Pulling model: $model"
-    local response=$(curl -s -X POST "http://${OLLAMA_HOST}:11434/api/pull" -d "{\"name\":\"$model\"}" 2>&1)
-    if [ $? -eq 0 ]; then
-        echo "Successfully pulled $model"
-    else
-        echo "Failed to pull $model - Error: $response"
-    fi
+    echo "Found Ollama service at: ${ollama_ip}"
+    export OLLAMA_HOST="${ollama_ip}"
+    
+    # Так как сервис отвечает, можно продолжить
+    return 0
 }
 
 # Wait for Ollama service to be ready
