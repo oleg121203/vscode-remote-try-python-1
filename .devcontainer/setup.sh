@@ -98,47 +98,75 @@ fi
 # Verify Node.js installation
 bash .devcontainer/verify-node.sh
 
-# Check Ollama service availability
-echo "Checking Ollama service..."
-MAX_RETRIES=30
-RETRY_COUNT=0
+# Function to determine Ollama IP address
+get_ollama_ip() {
+    local possible_ips=("172.17.0.1" "127.0.0.1" "host.docker.internal")
+    
+    for ip in "${possible_ips[@]}"; do
+        if curl --output /dev/null --silent --head --fail "http://${ip}:11434/api/status"; then
+            echo "${ip}"
+            return 0
+        fi
+    done
+    return 1
+}
 
-until curl -s http://172.17.0.1:11434/api/health >/dev/null; do
-    echo "Waiting for Ollama service... (${RETRY_COUNT}/${MAX_RETRIES})"
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-    if [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; then
-        echo "Ollama service not available after ${MAX_RETRIES} retries"
-        exit 1
+# Check and wait for Ollama readiness
+wait_for_ollama() {
+    local max_attempts=30
+    local attempt=1
+    
+    echo "Determining Ollama service IP address..."
+    local ollama_ip=$(get_ollama_ip)
+    if [ $? -ne 0 ]; then
+        echo "Could not determine Ollama IP address"
+        return 1
     fi
-    sleep 2
-done
-echo "Ollama service is ready"
+    echo "Found Ollama service at: ${ollama_ip}"
+    
+    echo "Waiting for Ollama service to be ready..."
+    while [ $attempt -le $max_attempts ]; do
+        if curl --output /dev/null --silent --head --fail "http://${ollama_ip}:11434/api/status"; then
+            echo "Ollama service is ready"
+            export OLLAMA_HOST="${ollama_ip}"
+            return 0
+        fi
+        echo "Attempt $attempt/$max_attempts: Waiting for Ollama to start..."
+        sleep 5
+        attempt=$((attempt + 1))
+    done
+    echo "Ollama service failed to start after $max_attempts attempts"
+    return 1
+}
 
-# Pull Ollama models
-echo "Pulling Ollama models..."
-MODELS=(
-    'deepseek-coder-v2:latest'
-    'nomic-embed-text:latest'
-    'qwen2.5-coder:7b'
-    'qwen2.5-coder:1.5b'
-    'llama3.1:latest'
-)
-
-for model in "${MODELS[@]}"; do
+# Function to pull model
+pull_model() {
+    local model=$1
     echo "Pulling model: $model"
-    if curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/pull; then
-        curl -X POST http://172.17.0.1:11434/api/pull -d "{\"name\":\"$model\"}"
+    local response=$(curl -s -X POST "http://${OLLAMA_HOST}:11434/api/pull" -d "{\"name\":\"$model\"}" 2>&1)
+    if [ $? -eq 0 ]; then
         echo "Successfully pulled $model"
     else
-        echo "Failed to pull $model - API not available"
+        echo "Failed to pull $model - Error: $response"
     fi
+}
+
+# Wait for Ollama service to be ready
+if ! wait_for_ollama; then
+    echo "Failed to connect to Ollama service"
+    exit 1
+fi
+
+# Pull Ollama models
+for model in "deepseek-coder-v2:latest" "nomic-embed-text:latest" "qwen2.5-coder:7b" "qwen2.5-coder:1.5b" "llama3.1:latest"; do
+    pull_model "$model"
 done
 
 # Configure Ollama environment variables
 {
-    echo 'export OLLAMA_API_HOST=172.17.0.1'
+    echo "export OLLAMA_API_HOST=${OLLAMA_HOST}"
     echo 'export OLLAMA_API_PORT=11434'
-    echo 'export OLLAMA_API_BASE_URL=http://172.17.0.1:11434'
+    echo "export OLLAMA_API_BASE_URL=http://${OLLAMA_HOST}:11434"
 } >> ~/.bashrc
 
 # Configure Git
