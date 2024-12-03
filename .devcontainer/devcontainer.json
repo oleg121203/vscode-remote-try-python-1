@@ -1,11 +1,14 @@
 {
-    "name": "Python Dev Container",
-    "image": "mcr.microsoft.com/devcontainers/python:3.11",
-    "features": {
-        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-            "version": "latest"
-        }
+    "name": "Dev Container: Python",
+    "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bullseye",
+    "version": "1.0.0",
+    "buildArgs": {
+        "RUN_USER": "${remoteUser}",
+        "SHELL": "/bin/bash"
     },
+    "containerFeatures": [
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+    ],
     "postCreateCommand": {
         "setup": "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh",
         "init-dirs": "sudo mkdir -p /tmp/runtime-vscode && sudo chmod 700 /tmp/runtime-vscode && sudo mkdir -p /tmp/.X11-unix && sudo chmod 1777 /tmp/.X11-unix",
@@ -118,30 +121,7 @@
                 "sonarlint.pathToNodeExecutable": "/usr/bin/node",
                 "sonarlint.node.minVersion": "18.18.0",
                 "sonarlint.node.maxVersion": "18.99.99",
-                "vs-kubernetes": {
-                    "vs-kubernetes.kubectl-path": "/usr/local/bin/kubectl",
-                    "vs-kubernetes.helm-path": "/usr/local/bin/helm",
-                    "vs-kubernetes.minikube-path": "/usr/local/bin/minikube"
-                },
-                "continue.apiKey": "${localEnv:CONTINUE_API_KEY}",
-                "continue.preferredLanguage": "ru-RU",
-                "continue.sites": {
-                    "ollama": {
-                        "url": "http://172.17.0.1:11434",
-                        "baseUrl": "http://172.17.0.1:11434",
-                        "models": [
-                            "deepseek-coder-v2",
-                            "nomic-embed-text",
-                            "qwen2.5-coder",
-                            "llama3.1"
-                        ]
-                    }
-                },
-                "continue.ollama": {
-                    "baseUrl": "http://172.17.0.1:11434",
-                    "origins": "*",
-                    "host": "http://172.17.0.1:11434"
-                }
+                "sonarlint.codeLens.enabled": true
             },
             "extensions": [
                 "ms-python.python",
@@ -221,7 +201,11 @@
         "--add-host=host.docker.internal:host-gateway",
         "--network=host",
         "--security-opt=seccomp=unconfined",
-        "--init"
+        "--init",
+        "-e",
+        "DISPLAY=:1",
+        "-v",
+        "/tmp/.X11-unix:/tmp/.X11-unix"
     ],
     "containerEnv": {
         "SHELL": "/bin/bash"

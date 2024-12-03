@@ -4,8 +4,18 @@ set -e
 # Cleanup previous sessions
 pkill -f "vncserver" || true
 pkill -f "websockify" || true
+pkill -f "Xvfb" || true
 rm -rf /tmp/.X*
 rm -rf ~/.Xauthority
+
+# Setup X11 directories and permissions
+sudo mkdir -p /tmp/.X11-unix
+sudo chmod 1777 /tmp/.X11-unix
+
+# Setup virtual display
+Xvfb :1 -screen 0 1024x768x16 &
+export DISPLAY=:1
+export XDG_RUNTIME_DIR=/tmp/runtime-vscode
 
 # Setup xauth
 touch ~/.Xauthority
@@ -25,26 +35,19 @@ export XKL_XMODMAP_DISABLE=1
 export XDG_CURRENT_DESKTOP="XFCE"
 export DISPLAY=:1
 
-# Ensure proper window manager startup
 xrdb ~/.Xresources
 openbox-session &
 startxfce4 &
 EOF
 chmod +x ~/.vnc/xstartup
 
-# Start VNC server
-vncserver :1 -geometry 1920x1080 -depth 24 -localhost no \
-    -SecurityTypes VncAuth \
-    -PasswordFile ~/.vnc/passwd \
-    -xstartup ~/.vnc/xstartup
-
-# Wait for VNC to start
-sleep 5
+# Start VNC server with X11 integration
+x11vnc -display :1 -auth ~/.Xauthority -forever -shared -passwd "${VNC_PASSWORD:-vncpass123}" &
 
 # Start noVNC
 websockify -D --web=/usr/share/novnc/ 6080 localhost:5901
 
-echo "VNC server started on port 5901"
+echo "VNC server started with X11 integration"
 echo "noVNC interface available at http://localhost:6080"
 
 # Keep the script running
