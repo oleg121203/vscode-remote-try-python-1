@@ -3,23 +3,22 @@
     "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bullseye",
     "version": "1.0.0",
     "buildArgs": {
-        "RUN_USER": "${remoteUser}",
-        "SHELL": "/bin/bash"
+        "RUN_USER": "${remoteUser}"
     },
     "containerFeatures": [
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
     ],
-    "postCreateCommand": {
-        "setup": "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh",
-        "init-dirs": "sudo mkdir -p /tmp/runtime-vscode && sudo chmod 700 /tmp/runtime-vscode && sudo mkdir -p /tmp/.X11-unix && sudo chmod 1777 /tmp/.X11-unix",
-        "pull-models": "for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do if curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/pull; then curl -X POST http://172.17.0.1:11434/api/pull -d '{\"name\":\"'$model'\"}'; else echo 'URL not available'; fi; done",
-        "check-ollama": "curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/health || echo 'Ollama is not available'"
-    },
+    /* Закомментируем блок postCreateCommand
+    "postCreateCommand": [
+        "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh",
+        "for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do if curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/pull; then curl -X POST http://172.17.0.1:11434/api/pull -d '{\"name\":\"'$model'\"}'; else echo 'URL not available'; fi; done",
+        "curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/health || echo 'Ollama is not available'"
+    ],
+    */
     "customizations": {
         "vscode": {
             "settings": {
                 "files.autoSave": "onFocusChange",
-                "files.autoSaveDelay": 3000,
                 "editor.formatOnSave": true,
                 "[python]": {
                     "editor.defaultFormatter": "ms-python.python",
@@ -28,14 +27,8 @@
                 "editor.codeActionsOnSave": {
                     "source.organizeImports": true,
                     "source.fixAll": true,
-                    "source.fixAll.sortImports": true,
-                    "source.fixAll.docformatter": true // Добавлено для docformatter
+                    "source.fixAll.sortImports": true
                 },
-                "python.languageServer": "Pylance",
-                "python.analysis.autoImportCompletions": true,
-                "python.analysis.typeCheckingMode": "basic",
-                "python.analysis.autoSearchPaths": true,
-                "python.analysis.useLibraryCodeForTypes": true,
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
                 "python.pip.downloadCache": "${containerWorkspaceFolder}/.pip-cache",
                 "black-formatter.args": [
@@ -82,45 +75,26 @@
                 "python.linting.flake8Enabled": true,
                 "python.linting.flake8Args": [
                     "--max-line-length=88",
-                    "--ignore=E203,W503" // Игнорирование конфликтующих правил
+                    "--ignore=E203,W503"
                 ],
                 "mypy.enabled": true,
                 "mypy.runUsingActiveInterpreter": true,
                 "mypy.args": [
-                    "--strict" // строгий режим проверки типов
+                    "--strict"
                 ],
                 "python.testing.pytestEnabled": true,
-                "python.testing.unittestEnabled": false,
-                "python.testing.nosetestsEnabled": false,
                 "python.testing.pytestArgs": [
                     "tests"
                 ],
                 "python.analysis.inlayHints.functionReturnTypes": true,
                 "python.analysis.inlayHints.variableTypes": true,
-                "python.analysis.packageIndexDepths": [
-                    {
-                        "name": "sklearn",
-                        "depth": 2
-                    },
-                    {
-                        "name": "matplotlib",
-                        "depth": 2
-                    },
-                    {
-                        "name": "scipy",
-                        "depth": 2
-                    }
-                ],
                 "git.enableSmartCommit": true,
                 "git.confirmSync": false,
                 "git.autofetch": true,
-                "gitlens.codeLens.enabled": true,
                 "terminal.integrated.enablePersistentSessions": true,
                 "terminal.integrated.scrollback": 5000,
                 "debugging.autoExpandLazyVariables": true,
                 "sonarlint.pathToNodeExecutable": "/usr/bin/node",
-                "sonarlint.node.minVersion": "18.18.0",
-                "sonarlint.node.maxVersion": "18.99.99",
                 "sonarlint.codeLens.enabled": true
             },
             "extensions": [
@@ -137,7 +111,6 @@
                 "ms-python.isort",
                 "ms-python.flake8",
                 "ms-python.mypy-type-checker",
-                "ms-python.docformatter",
                 "Continue.continue",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",
                 "GitHub.vscode-pull-request-github",
@@ -150,7 +123,6 @@
                 "VisualStudioExptTeam.vscodeintellicode",
                 "VisualStudioExptTeam.intellicode-api-usage-examples",
                 "donjayamanne.python-extension-pack",
-                "ms-vscode.vscode-speech-language-pack-uk-ua",
                 "ms-python.autopep8",
                 "ms-mssql.data-workspace-vscode",
                 "dbaeumer.vscode-eslint",
@@ -165,7 +137,6 @@
                 "redhat.vscode-yaml",
                 "wholroyd.jinja",
                 "cstrap.flask-snippets",
-                "wholroyd.jinja",
                 "ms-toolsai.jupyter-keymap",
                 "KevinRose.vsc-python-indent",
                 "sonarsource.sonarlint-vscode",
@@ -175,39 +146,30 @@
         }
     },
     "remoteUser": "vscode",
+    "updateRemoteUserUID": false,
+    "skipNonBlocking": true,
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
     ],
     "forwardPorts": [
-        5901,
-        6080,
         11434,
         43619
     ],
-    "postStartCommand": "sudo bash .devcontainer/x11vnc-manager.sh start",
-    "remoteEnv": {
+    "containerEnv": {
+        "SHELL": "/bin/bash",
         "DISPLAY": ":1",
         "XDG_RUNTIME_DIR": "/tmp/runtime-vscode",
         "PYTHONPATH": "${containerWorkspaceFolder}",
-        "TEMP": "/tmp",
-        "TMP": "/tmp",
-        "VNC_PASSWORD": "${localEnv:VNC_PASSWORD:vncpass123}",
         "OLLAMA_HOST": "http://172.17.0.1:11434",
         "OLLAMA_ORIGINS": "*",
         "OLLAMA_BASE_URL": "http://172.17.0.1:11434"
     },
     "runArgs": [
-        "--privileged",
         "--add-host=host.docker.internal:host-gateway",
-        "--network=host",
-        "--security-opt=seccomp=unconfined",
         "--init",
         "-e",
         "DISPLAY=:1",
         "-v",
         "/tmp/.X11-unix:/tmp/.X11-unix"
-    ],
-    "containerEnv": {
-        "SHELL": "/bin/bash"
-    }
+    ]
 }

@@ -1,6 +1,38 @@
 #!/bin/bash
 set -e
 
+# Install Docker
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+# Fix permissions
+sudo usermod -aG docker vscode
+sudo usermod -aG sudo vscode
+
+# Fix runtime directory
+sudo mkdir -p /tmp/runtime-vscode
+sudo chown -R vscode:vscode /tmp/runtime-vscode
+sudo chmod 755 /tmp/runtime-vscode
+
+# Ensure docker socket has correct permissions
+sudo chmod 666 /var/run/docker.sock
+
+# Setup Docker access
+if [ -S /var/run/docker.sock ]; then
+    DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
+    sudo groupadd -g ${DOCKER_GID} docker-host || true
+    sudo usermod -aG docker-host vscode
+fi
+
+# Fix VS Code server permissions
+sudo mkdir -p /tmp/runtime-vscode
+sudo chown vscode:vscode /tmp/runtime-vscode
+sudo chmod 755 /tmp/runtime-vscode
+
 # Улучшенная обработка ошибок
 trap 'echo "Error on line $LINENO. Exit code: $?"' ERR
 
@@ -41,7 +73,6 @@ sudo apt-get install -y --no-install-recommends \
     xfce4-terminal \
     tigervnc-standalone-server \
     tigervnc-common \
-    tigervnc-tools \
     novnc \
     websockify \
     openbox \
@@ -60,11 +91,11 @@ sudo apt-get install -y --no-install-recommends \
     libxcb-render-util0 \
     libxcb-xinerama0 \
     libxcb-xfixes0 \
-    qdbus-qt6 \
-    libqt6gui6 \
-    libqt6widgets6 \
-    libqt6core6 \
-    libqt6dbus6
+    qtbase5-dev \
+    libqt5gui5 \
+    libqt5widgets5 \
+    libqt5core5a \
+    libqt5dbus5
 
 # Setup VNC config
 mkdir -p ~/.vnc
