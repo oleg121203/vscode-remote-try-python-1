@@ -142,16 +142,107 @@ wait_for_ollama() {
     return 0
 }
 
+# Инициализация переменных окружения Ollama
+export OLLAMA_HOST="172.17.0.1"
+export OLLAMA_API_BASE_URL="http://172.17.0.1:11434"
+export OLLAMA_API_PORT=11434
+
+# Исправленная функция проверки подключения к API
+check_ollama_connection() {
+    echo "Testing Ollama API..."
+    local api_url="http://${OLLAMA_HOST}:${OLLAMA_API_PORT}/api/version"
+    echo "Trying to connect to: ${api_url}"
+    
+    local response=$(curl -s "${api_url}")
+    local exit_code=$?
+    
+    echo "Curl exit code: ${exit_code}"
+    echo "Response: ${response}"
+    
+    if [ ${exit_code} -eq 0 ] && [ -n "${response}" ]; then
+        echo "✅ Ollama API connection successful"
+        return 0
+    else
+        echo "❌ Failed to connect to Ollama API"
+        return 1
+    fi
+}
+
+# Функция проверки модели
+check_model() {
+    local model=$2
+    echo "Checking model ${model} availability..."
+    
+    # Добавляем -v для подробного вывода
+    local response=$(curl -v -s "${OLLAMA_API_BASE_URL}/api/show" \
+        -H "Content-Type: application/json" \
+        -d "{\"name\":\"${model}\"}" 2>&1)
+    
+    echo "API Response: ${response}"
+    
+    if echo "${response}" | grep -q "success"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Функция загрузки модели
+pull_model() {
+    local model=$2
+    echo "Pulling model: ${model}"
+    
+    # Добавляем -v для подробного вывода
+    local response=$(curl -v -s "${OLLAMA_API_BASE_URL}/api/pull" \
+        -H "Content-Type: application/json" \
+        -d "{\"name\":\"${model}\"}" 2>&1)
+    
+    echo "API Response: ${response}"
+    
+    if echo "${response}" | grep -q "success"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Wait for Ollama service to be ready
 if ! wait_for_ollama; then
     echo "Failed to connect to Ollama service"
     exit 1
 fi
 
-# Pull Ollama models
-for model in "deepseek-coder-v2:latest" "nomic-embed-text:latest" "qwen2.5-coder:7b" "qwen2.5-coder:1.5b" "llama3.1:latest"; do
-    pull_model "$model"
-done
+# Проверка подключения к API
+if ! check_ollama_connection; then
+    echo "❌ Cannot proceed with model setup - Ollama API is not accessible"
+    exit 1
+fi
+
+# Создаем функцию для работы с моделями
+setup_ollama_models() {
+    local models=("deepseek-coder-v2:latest" "nomic-embed-text:latest" "qwen2.5-coder:7b")
+    
+    echo -e "\n=== Pulling Ollama Models ==="
+    for model in "${models[@]}"; do
+        echo "Testing model: ${model}"
+        if check_model "${OLLAMA_HOST}" "${model}"; then
+            echo "✅ Model ${model} check successful"
+        else
+            echo "❌ Model ${model} check failed"
+            
+            echo "Attempting to pull model ${model}..."
+            if pull_model "${OLLAMA_HOST}" "${model}"; then
+                echo "✅ Model ${model} pulled successfully"
+            else
+                echo "❌ Failed to pull model ${model}"
+            fi
+        fi
+    done
+    echo -e "\n=== Model Setup Complete ==="
+}
+
+# Запускаем настройку моделей
+setup_ollama_models
 
 # Configure Ollama environment variables
 {

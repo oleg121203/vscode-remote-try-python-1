@@ -153,9 +153,10 @@
         "DISPLAY": ":1",
         "XDG_RUNTIME_DIR": "/tmp/runtime-vscode",
         "PYTHONPATH": "${containerWorkspaceFolder}",
-        "OLLAMA_HOST": "http://172.17.0.1:11434",
+        "OLLAMA_HOST": "172.17.0.1",
         "OLLAMA_ORIGINS": "*",
-        "OLLAMA_BASE_URL": "http://172.17.0.1:11434"
+        "OLLAMA_API_BASE_URL": "http://172.17.0.1:11434",
+        "OLLAMA_API_PORT": "11434"
     },
     "runArgs": [
         "--add-host=host.docker.internal:host-gateway",
