@@ -153,11 +153,31 @@ bash .devcontainer/verify-node.sh
 
 # Configure Ollama
 echo "Checking Ollama service..."
+MAX_RETRIES=30
+RETRY_COUNT=0
+
 until curl -s http://172.17.0.1:11434/api/health >/dev/null; do
-    echo "Waiting for Ollama service..."
+    echo "Waiting for Ollama service... (${RETRY_COUNT}/${MAX_RETRIES})"
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+        echo "Ollama service not available after ${MAX_RETRIES} retries"
+        exit 1
+    fi
     sleep 2
 done
 echo "Ollama service is ready"
+
+# Pull models
+echo "Pulling Ollama models..."
+for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do
+    echo "Pulling model: $model"
+    if curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/pull; then
+        curl -X POST http://172.17.0.1:11434/api/pull -d "{\"name\":\"$model\"}"
+        echo "Successfully pulled $model"
+    else
+        echo "Failed to pull $model - API not available"
+    fi
+done
 
 # Configure Ollama environment variables
 echo "export OLLAMA_API_HOST=172.17.0.1" >> ~/.bashrc

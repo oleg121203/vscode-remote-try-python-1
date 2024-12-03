@@ -8,13 +8,9 @@
     "containerFeatures": [
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
     ],
-    /* Закомментируем блок postCreateCommand
     "postCreateCommand": [
-        "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh",
-        "for model in 'deepseek-coder-v2:latest' 'nomic-embed-text:latest' 'qwen2.5-coder:7b' 'qwen2.5-coder:1.5b' 'llama3.1:latest'; do if curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/pull; then curl -X POST http://172.17.0.1:11434/api/pull -d '{\"name\":\"'$model'\"}'; else echo 'URL not available'; fi; done",
-        "curl --output /dev/null --silent --head --fail http://172.17.0.1:11434/api/health || echo 'Ollama is not available'"
+        "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh"
     ],
-    */
     "customizations": {
         "vscode": {
             "settings": {
