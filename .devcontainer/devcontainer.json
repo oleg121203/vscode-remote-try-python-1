@@ -8,9 +8,6 @@
     "containerFeatures": [
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
     ],
-    "postCreateCommand": [
-        "chmod +x .devcontainer/*.sh && bash .devcontainer/setup.sh"
-    ],
     "customizations": {
         "vscode": {
             "settings": {
@@ -167,5 +164,6 @@
         "DISPLAY=:1",
         "-v",
         "/tmp/.X11-unix:/tmp/.X11-unix"
-    ]
+    ],
+    "postCreateCommand": "if [ -d .devcontainer ] && [ -f .devcontainer/setup.sh ]; then chmod +x .devcontainer/setup.sh && .devcontainer/setup.sh; fi"
 }
